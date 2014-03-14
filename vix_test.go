@@ -1,0 +1,5 @@
+package vix
+
+import (
+	"testing"
+)
