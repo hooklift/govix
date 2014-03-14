@@ -52,6 +52,13 @@ VixError readVariable(VixHandle jobHandle, char* readValue) {
 		readValue,
 		VIX_PROPERTY_NONE);
 }
+
+VixError getTempFilePath(VixHandle jobHandle, char* tempFilePath) {
+	return VixJob_Wait(jobHandle,
+		VIX_PROPERTY_JOB_RESULT_ITEM_NAME,
+		tempFilePath,
+		VIX_PROPERTY_NONE);
+}
 */
 import "C"
 
@@ -1417,16 +1424,152 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 	return C.GoString(readValue), nil
 }
 
-func (v *VM) WriteVariable() {
+// This function writes variables to the virtual machine state.
+// This includes the virtual machine configuration, environment variables in the guest,
+// and VMware "Guest Variables".
+//
+// Parameters:
+//
+// varType:
+// The type of variable to write. The currently supported values are:
+//		* VM_GUEST_VARIABLE - A "Guest Variable". This is a runtime-only value; it is never stored persistently.
+//							  This is the same guest variable that is exposed through the VMControl APIs, and is
+//							  a simple way to pass runtime values in and out of the guest.
+//		* VM_CONFIG_RUNTIME_ONLY - 	The configuration state of the virtual machine. This is the .vmx file that is stored on the host.
+//									You can read this and it will return the persistent data. If you write to this, it will only be
+//									a runtime change, so changes will be lost when the VM powers off. Not supported on ESX hosts.
+//		* GUEST_ENVIRONMENT_VARIABLE - An environment variable in the guest of the VM. On a Windows NT series guest,
+//										writing these values is saved persistently so they are immediately visible to every process.
+//										On a Linux or Windows 9X guest, writing these values is not persistent so they are only visible
+//										to the VMware tools process. Requires root or Administrator privilege.
+//
+// name: The name of the variable.
+// value: The value to be written.
+//
+// Remarks:
+//
+// * The VM_CONFIG_RUNTIME_ONLY variable type is not supported on ESX hosts.
+// * You must call VM.LoginInGuest() before calling this function to write a GUEST_ENVIRONMENT_VARIABLE value.
+//   You do not have to call VM.LoginInGuest() to use this function to write a VM_GUEST_VARIABLE or a VM_CONFIG_RUNTIME_ONLY value.
+// * Do not use the slash '/' character in a VM_GUEST_VARIABLE variable name; doing so produces a VIX_E_INVALID_ARG error.
+// * Do not use the equal '=' character in the value parameter; doing so produces a VIX_E_INVALID_ARG error.
+// * On Linux guests, you must login as root to change environment variables (when variable type is GUEST_ENVIRONMENT_VARIABLE)
+//   otherwise it produces a VIX_E_GUEST_USER_PERMISSIONS error.
+// * On Windows Vista guests, when variable type is GUEST_ENVIRONMENT_VARIABLE,
+//   you must turn off User Account Control (UAC) in Control Panel > User Accounts > User Accounts > Turn User Account on or off,
+//   in order for this function to work.
+//
+// Since VMware Workstation 6.0
+func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_WriteVariable(v.handle,
+		C.int(varType),
+		C.CString(name),
+		C.CString(value),
+		0,
+		nil, // callbackProc
+		nil) // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
-func (v *VM) RevertToSnapshot() {
+// Restores the virtual machine to the state when the specified snapshot was created.
+//
+// Parameters:
+//
+// snapshot: A Snapshot instance. Call VVM.GetRootSnapshot() to get a snapshot instance.
+// options: Any applicable VMPowerOption. If the virtual machine was powered on
+//          when the snapshot was created, then this will determine how the virtual machine is powered back on.
+//  		To prevent the virtual machine from being powered on regardless of the power state when the snapshot was created,
+// 			use the  VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON flag. VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is mutually exclusive
+// 			to all other VMPowerOpOptions.
+//
+// Remarks:
+//
+// * Restores the virtual machine to the state when the specified snapshot was created.
+// 	 This function can power on, power off, or suspend a virtual machine. The resulting power state reflects the power state
+// 	 when the snapshot was created.
+// * When you revert a powered on virtual machine and want it to display in the Workstation user interface,
+//   options must have the VMPOWEROP_LAUNCH_GUI flag, unless the VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is used.
+// * The ToolsState property of the virtual machine is undefined after the snapshot is reverted.
+// * Starting in VMware Workstation 6.5, snapshot operations are allowed on virtual machines that are part of a team.
+//   Previously, this operation failed with error code PROPERTY_VM_IN_VMTEAM. Team members snapshot independently
+//   so they can have different and inconsistent snapshot states.
+// * This function is not supported when using the VMWARE_PLAYER provider
+// * If the virtual machine is open and powered off in the UI, this function now closes the virtual machine in the UI before
+//   reverting to the snapshot. To refresh this property, you must wait for tools in the guest.
+// * After reverting to a snapshot, you must call VM.WaitForToolsInGuest() before executing guest operations
+//   or querying guest properties.
+//
+// Since VMware Server 1.0
+func (v *VM) RevertToSnapshot(snapshot *Snapshot, options VMPowerOption) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_RevertToSnapshot(v.handle,
+		snapshot.handle,
+		0,                    // options
+		C.VIX_INVALID_HANDLE, // propertyListHandle
+		nil,                  // callbackProc
+		nil)                  // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
-func (v *VM) UpgradeVHardware() {
+// Upgrades the virtual hardware version of the virtual machine to match the version of the VIX library.
+// This has no effect if the virtual machine is already at the same version or at a newer version than the VIX library.
+//
+// Remarks:
+// * The virtual machine must be powered off to do this operation.
+// * When the VM is already up-to-date, the function returns without errors.
+// * This function is not supported when using the VMWARE_PLAYER provider.
+//
+// Since VMware Server 1.0
+func (v *VM) UpgradeVHardware() error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_UpgradeVirtualHardware(v.handle,
+		0,   // options
+		nil, // callbackProc
+		nil) // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
 // This function establishes a guest operating system authentication context
@@ -1571,28 +1714,173 @@ type Guest struct {
 	SharedFoldersParentDir string
 }
 
-//VixVM_CopyFileFromGuestToHost
-func (g *Guest) CopyFileToHost() {
+// Copies a file or directory from the guest operating system to the local system (where the Vix client is running).
+//
+// Parameters:
+//
+// guestpath: The path name of a file on a file system available to the guest.
+// hostpath: The path name of a file on a file system available to the Vix client.
+//
+func (g *Guest) CopyFileToHost(guestpath, hostpath string) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_CopyFileFromGuestToHost(g.handle,
+		C.CString(guestpath), // src name
+		C.CString(hostpath),  // dest name
+		0,                    // options
+		C.VIX_INVALID_HANDLE, // propertyListHandle
+		nil,                  // callbackProc
+		nil)                  // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
-func (g *Guest) MkDir() {
+// This function creates a directory in the guest operating system.
+//
+// Parameters:
+//
+// path: The path to the directory to be created.
+//
+// Remarks:
+//
+// * If the parent directories for the specified path do not exist, this function will create them.
+// * If the directory already exists, the error will be set to VIX_E_FILE_ALREADY_EXISTS.
+// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+//
+// Since Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) MkDir(path string) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_CreateDirectoryInGuest(g.handle,
+		C.CString(path),      // path name
+		C.VIX_INVALID_HANDLE, // propertyListHandle
+		nil,                  // callbackProc
+		nil)                  // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
-//VixVM_CreateTempFileInGuest
-func (g *Guest) MkTemp() {
+// This function creates a temporary file in the guest operating system.
+// The user is responsible for removing the file when it is no longer needed.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) MkTemp() (string, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var tempFilePath *C.char
 
+	jobHandle = C.VixVM_CreateTempFileInGuest(g.handle,
+		0,                    // options
+		C.VIX_INVALID_HANDLE, // propertyListHandle
+		nil,                  // callbackProc
+		nil)                  // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.getTempFilePath(jobHandle, tempFilePath)
+	defer C.Vix_FreeBuffer(unsafe.Pointer(tempFilePath))
+
+	if C.VIX_OK != err {
+		return "", &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return C.GoString(tempFilePath), nil
 }
 
-//VixVM_DeleteDirectoryInGuest
-func (g *Guest) RmDir() {
+// This function deletes a directory in the guest operating system.
+// Any files or subdirectories in the specified directory will also be deleted.
+//
+// Parameters:
+//
+// path: The path to the directory to be deleted.
+//
+// Remarks:
+//
+// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) RmDir(path string) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_DeleteDirectoryInGuest(g.handle,
+		C.CString(path), // path name
+		0,               // options
+		nil,             // callbackProc
+		nil)             // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
-//VixVM_DeleteFileInGuest
-func (g *Guest) RmFile() {
+// This function deletes a file in the guest operating system.
+//
+// Parameters:
+//
+// filepath: The path to the file to be deleted.
+//
+// Remarks:
+// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) RmFile(filepath string) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_DeleteFileInGuest(g.handle,
+		C.CString(filepath), // file path name
+		nil,                 // callbackProc
+		nil)                 // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
 //VixVM_DirectoryExistsInGuest
