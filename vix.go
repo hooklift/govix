@@ -1988,9 +1988,35 @@ func (g *Guest) Ps() {
 
 }
 
-//VixVM_LogoutFromGuest
-func (g *Guest) Logout() {
+// This function removes any guest operating system authentication
+// context created by a previous call to VM.LoginInGuest().
+//
+// Remarks:
+// * This function has no effect and returns success if VM.LoginInGuest() has not been called.
+// * If you call this function while guest operations are in progress, subsequent operations may fail with a permissions error.
+// It is best to wait for guest operations to complete before logging out.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) Logout() error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_LogoutFromGuest(g.handle,
+		nil, // callbackProc
+		nil) // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
 //VixVM_RunProgramInGuest
