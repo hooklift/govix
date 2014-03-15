@@ -59,6 +59,13 @@ VixError getTempFilePath(VixHandle jobHandle, char* tempFilePath) {
 		tempFilePath,
 		VIX_PROPERTY_NONE);
 }
+
+VixError isFileOrDir(VixHandle jobHandle, int* result) {
+	return VixJob_Wait(jobHandle,
+		VIX_PROPERTY_JOB_RESULT_GUEST_OBJECT_EXISTS,
+		result,
+		VIX_PROPERTY_NONE);
+}
 */
 import "C"
 
@@ -1883,14 +1890,82 @@ func (g *Guest) RmFile(filepath string) error {
 	return nil
 }
 
-//VixVM_DirectoryExistsInGuest
-func (g *Guest) IsDir() {
+// This function tests the existence of a directory in the guest operating system.
+//
+// Parameters:
+//
+// path: The path to the directory in the guest to be checked.
+//
+// Remarks:
+//
+// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) IsDir(path string) (bool, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var result C.int
 
+	jobHandle = C.VixVM_DirectoryExistsInGuest(g.handle,
+		C.CString(path), // dir path name
+		nil,             // callbackProc
+		nil)             // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.isFileOrDir(jobHandle, &result)
+	if C.VIX_OK != err {
+		return false, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	if int(result) == C.FALSE {
+		return false, nil
+	}
+
+	return true, nil
 }
 
-//VixVM_FileExistsInGuest
-func (g *Guest) IsFile() {
+// This function tests the existence of a file in the guest operating system.
+// Parameters:
+//
+// filepath: The path to the file to be tested.
+//
+// Remarks:
+//
+// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+// * If filepath exists as a file system object, but is not a normal file (e.g. it is a directory, device, UNIX domain socket, etc),
+//   then VIX_OK is returned, and VIX_PROPERTY_JOB_RESULT_GUEST_OBJECT_EXISTS is set to FALSE.
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) IsFile(filepath string) (bool, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var result C.int
 
+	jobHandle = C.VixVM_FileExistsInGuest(g.handle,
+		C.CString(filepath), // dir path name
+		nil,                 // callbackProc
+		nil)                 // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.isFileOrDir(jobHandle, &result)
+	if C.VIX_OK != err {
+		return false, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	if int(result) == C.FALSE {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 //VixVM_GetFileInfoInGuest
