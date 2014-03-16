@@ -254,7 +254,7 @@ const (
 type RunProgramOption int
 
 const (
-	RUNPROGRAM_WAIT               RunProgramOption = 0
+	RUNPROGRAM_WAIT               RunProgramOption = 0x0
 	RUNPROGRAM_RETURN_IMMEDIATELY RunProgramOption = C.VIX_RUNPROGRAM_RETURN_IMMEDIATELY
 	RUNPROGRAM_ACTIVATE_WINDOW    RunProgramOption = C.VIX_RUNPROGRAM_ACTIVATE_WINDOW
 )
@@ -367,7 +367,6 @@ func Connect(
 		C.VIX_PROPERTY_NONE)
 
 	defer C.Vix_ReleaseHandle(jobHandle)
-	defer C.VixHost_Disconnect(hostHandle)
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
@@ -2298,7 +2297,8 @@ func (g *Guest) RunScript(shell, args string, options RunProgramOption) (uint64,
 //   or is cancelled.
 // * The virtual machine must be powered on to do this operation.
 // * If the Workstation installer calls for an ISO file that is not downloaded,
-//   this function returns an error, rather than attempting to download the ISO file.
+//   this function returns an error, rather than attempting to download the ISO
+//   file.
 //
 // Since VMware Server 1.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -2325,9 +2325,48 @@ func (g *Guest) InstallTools(options InstallToolsOption) error {
 	return nil
 }
 
-//VixVM_RenameFileInGuest
-func (g *Guest) Mv() {
+// This function renames a file or directory in the guest operating system.
+//
+// Parameters:
+//
+// path1: The path to the file to be renamed.
+// path2: The path to the new file.
+//
+// Remarks:
+//
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
+// * On Windows guests, it fails on directory moves when the destination is on a
+//   different volume.
+// * Because of the differences in how various operating systems handle
+//   filenames, Vix may return either VIX_E_INVALID_ARG or
+//   VIX_E_FILE_NAME_TOO_LONG for filenames longer than 255 characters.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) Mv(path1, path2 string) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_RenameFileInGuest(g.handle,
+		C.CString(path1),     //oldName
+		C.CString(path2),     //newName
+		0,                    //options
+		C.VIX_INVALID_HANDLE, //propertyListHandle
+		nil,                  //callbackProc
+		nil)                  //clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
 type Snapshot struct {
