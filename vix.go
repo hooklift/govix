@@ -254,6 +254,7 @@ const (
 type RunProgramOption int
 
 const (
+	RUNPROGRAM_WAIT               RunProgramOption = 0
 	RUNPROGRAM_RETURN_IMMEDIATELY RunProgramOption = C.VIX_RUNPROGRAM_RETURN_IMMEDIATELY
 	RUNPROGRAM_ACTIVATE_WINDOW    RunProgramOption = C.VIX_RUNPROGRAM_ACTIVATE_WINDOW
 )
@@ -2113,8 +2114,8 @@ func (g *Guest) Logout() error {
 //   LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT as the option before calling
 //   this function. This will ensure that the program is run within a
 //   graphical session that is visible to the user.
-// * If the options parameter is 0, this function will report completion to
-//   the job handle when the program exits in the guest operating system.
+// * If the options parameter is RUNPROGRAM_WAIT, this function will block and
+//   return only when the program exits in the guest operating system.
 //   Alternatively, you can pass RUNPROGRAM_RETURN_IMMEDIATELY as the value of
 //   the options parameter, and this function will return as soon as the program
 //	 starts in the guest.
@@ -2178,9 +2179,75 @@ func (g *Guest) RunProgram(path, args string, options RunProgramOption) (uint64,
 	return uint64(*pid), int(*elapsedtime), int(*exitCode), nil
 }
 
-//VixVM_RunScriptInGuest
-func (g *Guest) RunScript() {
+// This function runs a script in the guest operating system.
+//
+// Parameters:
+//
+// shell: The path to the script interpreter, or NULL to use cmd.exe as
+//        the interpreter on Windows.
+// script: The text of the script.
+// options: Run options for the program. See the remarks below.
+//
+// Remarks:
+//
+// * This function runs the script in the guest operating system.
+// * The current working directory for the script executed in the guest is
+//   not defined. Absolute paths should be used for files in the guest,
+//   including the path to the shell or interpreter, and any files referenced
+//   in the script text.
+// * If the options parameter is RUNPROGRAM_WAIT, this function will block and
+//   return only when the program exits in the guest operating system.
+//   Alternatively, you can pass RUNPROGRAM_RETURN_IMMEDIATELY as the value of
+//   the options parameter, and this makes the function to return as soon as the
+//   program starts in the guest.
+// * The following properties will be returned:
+// 	 PROCESS_ID: the process id; however, if the guest has an older version of
+//               Tools (those released with Workstation 6 and earlier) and
+//               the RUNPROGRAM_RETURN_IMMEDIATELY flag is used, then the
+//               process ID will not be returned from the guest and this
+//               property will return 0.
+// 	 ELAPSED_TIME: the process elapsed time;
+//   PROGRAM_EXIT_CODE: the process exit code.
+// * If the option parameter is RUNPROGRAM_RETURN_IMMEDIATELY, the latter two
+//   will both be 0.
+// * Depending on the behavior of the guest operating system, there may be a
+//   short delay after the function returns before the process is visible in the
+//   guest operating system.
+// * If the total size of the specified interpreter and the script text is
+//   larger than 60536 bytes, then the error VIX_E_ARGUMENT_TOO_BIG is returned.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) RunScript(shell, args string, options RunProgramOption) (uint64, int, int, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var pid *C.uint64
+	var elapsedtime *C.int
+	var exitCode *C.int
 
+	jobHandle = C.VixVM_RunProgramInGuest(g.handle,
+		C.CString(shell),                //guestProgramName
+		C.CString(args),                 //commandLineArgs
+		C.VixRunProgramOptions(options), //options
+		C.VIX_INVALID_HANDLE,            //propertyListHandle
+		nil,                             // callbackProc
+		nil)                             // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.runProgramResult(jobHandle, pid, elapsedtime, exitCode)
+	defer C.Vix_FreeBuffer(unsafe.Pointer(pid))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(elapsedtime))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(exitCode))
+
+	if C.VIX_OK != err {
+		return 0, 0, 0, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return uint64(*pid), int(*elapsedtime), int(*exitCode), nil
 }
 
 //VixVM_InstallTools
