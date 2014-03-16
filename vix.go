@@ -1968,8 +1968,18 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 	return true, nil
 }
 
-//VixVM_GetFileInfoInGuest
-func (g *Guest) FileInfo() {
+// This function returns information about a file in the guest operating system.
+//
+// Parameters:
+//
+// filepath: The path name of the file in the guest.
+//
+// Remarks:
+// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+//
+// Since VMware Workstation 6.5
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) FileInfo(filepath string) {
 
 }
 
