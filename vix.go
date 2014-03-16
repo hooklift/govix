@@ -102,31 +102,38 @@ import (
 type VMPowerState int
 
 const (
-	// Indicates that VM.PowerOff() has been called, but the operation itself has not completed.
+	// Indicates that VM.PowerOff() has been called, but the operation itself
+	// has not completed.
 	POWERSTATE_POWERING_OFF VMPowerState = C.VIX_POWERSTATE_POWERING_OFF
 
 	// Indicates that the virtual machine is not running.
 	POWERSTATE_POWERED_OFF VMPowerState = C.VIX_POWERSTATE_POWERED_OFF
 
-	// Indicates that VM.PowerOn() has been called, but the operation itself has not completed.
+	// Indicates that VM.PowerOn() has been called, but the operation itself
+	// has not completed.
 	POWERSTATE_POWERING_ON VMPowerState = C.VIX_POWERSTATE_POWERING_ON
 
 	// Indicates that the virtual machine is running.
 	POWERSTATE_POWERED_ON VMPowerState = C.VIX_POWERSTATE_POWERED_ON
 
-	// Indicates that VM.Suspend() has been called, but the operation itself has not completed.
+	// Indicates that VM.Suspend() has been called, but the operation itself
+	// has not completed.
 	POWERSTATE_SUSPENDING VMPowerState = C.VIX_POWERSTATE_SUSPENDING
 
-	// Indicates that the virtual machine is suspended. Use VM.PowerOn() to resume the virtual machine.
+	// Indicates that the virtual machine is suspended. Use VM.PowerOn() to
+	// resume the virtual machine.
 	POWERSTATE_SUSPENDED VMPowerState = C.VIX_POWERSTATE_SUSPENDED
 
-	// Indicates that the virtual machine is running and the VMware Tools suite is active. See also the VixToolsState property.
+	// Indicates that the virtual machine is running and the VMware Tools
+	// suite is active. See also the VixToolsState property.
 	POWERSTATE_TOOLS_RUNNING VMPowerState = C.VIX_POWERSTATE_TOOLS_RUNNING
 
-	// Indicates that VM.Reset() has been called, but the operation itself has not completed.
+	// Indicates that VM.Reset() has been called, but the operation itself
+	// has not completed.
 	POWERSTATE_RESETTING VMPowerState = C.VIX_POWERSTATE_RESETTING
 
-	// Indicates that a virtual machine state change is blocked, waiting for user interaction.
+	// Indicates that a virtual machine state change is blocked, waiting for
+	// user interaction.
 	POWERSTATE_BLOCKED_ON_MSG VMPowerState = C.VIX_POWERSTATE_BLOCKED_ON_MSG
 )
 
@@ -142,7 +149,8 @@ const (
 	FIND_RUNNING_VMS SearchType = C.VIX_FIND_RUNNING_VMS
 
 	// Finds all virtual machines registered on the host.
-	// This search applies only to platform products that maintain a virtual machine registry,
+	// This search applies only to platform products that maintain a virtual
+	// machine registry,
 	// such as ESX/ESXi and VMware Server, but not Workstation or Player.
 	FIND_REGISTERED_VMS SearchType = C.VIX_FIND_REGISTERED_VMS
 )
@@ -150,7 +158,8 @@ const (
 // VixToolsState
 //
 // These are the possible values reported for VIX_PROPERTY_VM_TOOLS_STATE.
-// They represent runtime information about the VMware Tools suite in the guest operating system.
+// They represent runtime information about the VMware Tools suite in the guest
+// operating system.
 // To test the value of the property, use the Vix.GetProperties() function.
 //
 // Since VMware Server 1.0.
@@ -288,7 +297,8 @@ type Host struct {
 // use a URL of the form "https://<hostName>:<port>/sdk"
 // where <hostName> is either the DNS name or IP address.
 // If missing, <port> may default to 443 (see Remarks below).
-// In VIX API 1.10 and later, you can omit "https://" and "/sdk" specifying just the DNS name or IP address.
+// In VIX API 1.10 and later, you can omit "https://" and "/sdk" specifying
+// just the DNS name or IP address.
 // Credentials are required even for connections made locally.
 // With Workstation, use nil to connect to the local host.
 // With VMware Server 1.0.x, use the DNS name or IP address for remote connections,
@@ -298,7 +308,8 @@ type Host struct {
 // TCP/IP port on the remote host.
 // With VMware Workstation and VMware Player, use zero for the local host.
 // With ESX/ESXi hosts, VMware Workstation (shared mode) and VMware Server 2.0
-// you specify port number within the hostName parameter, so this parameter is ignored (see Remarks below).
+// you specify port number within the hostName parameter, so this parameter is
+// ignored (see Remarks below).
 //
 // Username:
 // Username for authentication on the remote machine.
@@ -311,32 +322,50 @@ type Host struct {
 // Password for authentication on the remote machine.
 // With VMware Workstation, VMware Player, and VMware Server 1.0.x,
 // use nil to authenticate as the current user on local host.
-// With ESX/ESXi, VMware Workstation (shared mode) and VMware Server 2.0, you must use a valid login.
+// With ESX/ESXi, VMware Workstation (shared mode) and VMware Server 2.0, you
+// must use a valid login.
 //
 // Remarks:
-// * To specify the local host (where the API client runs) with VMware Workstation and VMware Player,
-//   pass nil values for the hostname, port, login, and password parameters.
-// * With vCenter Server, ESX/ESXi hosts, and VMware Server 2.0, the URL for the hostname argument may specify the port.
-//   Otherwise an HTTPS connection is attempted on port 443. HTTPS is strongly recommended.
-//   Port numbers are set during installation of Server 2.0. The installer's default HTTP and
-//   HTTPS values are 8222 and 8333 for Server on Windows, or (if not already in use) 80 and 443
-//   for Server on Linux, and 902 for the automation socket, authd. If connecting to a virtual
-//   machine though a firewall, port 902 and the communicating port must be opened to allow guest operations.
-// * If a VMware ESX host is being managed by a VMware VCenter Server, you should call VixHost_Connect
-//   with the hostname or IP address of the VCenter server, not the ESX host.
-//   Connecting directly to an ESX host while bypassing its VCenter Server can cause state inconsistency.
-// * On Windows, this function should not be called multiple times with different service
-//   providers in the same process; doing so will result in a VIX_E_WRAPPER_MULTIPLE_SERVICEPROVIDERS error.
-//   A single client process can connect to multiple hosts as long as it connects using the same service provider type.
-// * To enable SSL certificate verification, set the value of the options parameter to include the bit flag specified by VERIFY_SSL_CERT.
-//   This option can also be set in the VMware config file by assigning vix.enableSslCertificateCheck as TRUE or FALSE.
-//   The vix.sslCertificateFile config option specifies the path to a file containing CA certificates in PEM format.
-//   The vix.sslCertificateDirectory config option can specify a directory containing files that each contain a CA certificate.
-//   Upon encountering a SSL validation error, the host handle is not created with a resulting error code of E_NET_HTTP_SSL_SECURITY.
-// * With VMware vCenter Server and ESX/ESXi 4.0 hosts, an existing VI API session can be used instead
-//   of the username/password pair to authenticate when connecting. To use an existing VI API session, a VI "clone ticket"
-//   is required; call the VI API AcquireCloneTicket() method of the SessionManager object to get this ticket.
-//   Using the ticket string returned by this method, call VixHost_Connect() with NULL as the 'username' and the ticket as the 'password'.
+// * To specify the local host (where the API client runs) with VMware
+//   Workstation and VMware Player, pass nil values for the hostname, port,
+//   login, and password parameters.
+// * With vCenter Server, ESX/ESXi hosts, and VMware Server 2.0, the URL for
+//   the hostname argument may specify the port.
+//   Otherwise an HTTPS connection is attempted on port 443. HTTPS is strongly
+//   recommended.
+//   Port numbers are set during installation of Server 2.0. The installer's
+//   default HTTP and HTTPS values are 8222 and 8333 for Server on Windows, or
+//   (if not already in use) 80 and 443 for Server on Linux, and 902 for the
+//   automation socket, authd. If connecting to a virtual machine though a
+//   firewall, port 902 and the communicating port must be opened to allow
+//   guest operations.
+// * If a VMware ESX host is being managed by a VMware VCenter Server, you
+//   should call VixHost_Connect with the hostname or IP address of the VCenter
+//   server, not the ESX host.
+//   Connecting directly to an ESX host while bypassing its VCenter Server can
+//   cause state inconsistency.
+// * On Windows, this function should not be called multiple times with
+//   different service providers in the same process; doing so will result in
+//   a VIX_E_WRAPPER_MULTIPLE_SERVICEPROVIDERS error.
+//   A single client process can connect to multiple hosts as long as it
+//   connects using the same service provider type.
+// * To enable SSL certificate verification, set the value of the options
+//   parameter to include the bit flag specified by VERIFY_SSL_CERT.
+//   This option can also be set in the VMware config file by assigning
+//   vix.enableSslCertificateCheck as TRUE or FALSE.
+//   The vix.sslCertificateFile config option specifies the path to a file
+//   containing CA certificates in PEM format.
+//   The vix.sslCertificateDirectory config option can specify a directory
+//   containing files that each contain a CA certificate.
+//   Upon encountering a SSL validation error, the host handle is not created
+//   with a resulting error code of E_NET_HTTP_SSL_SECURITY.
+// * With VMware vCenter Server and ESX/ESXi 4.0 hosts, an existing VI API
+//   session can be used instead of the username/password pair to authenticate
+//   when connecting. To use an existing VI API session, a VI "clone ticket"
+//   is required; call the VI API AcquireCloneTicket() method of the
+//   SessionManager object to get this ticket.
+//   Using the ticket string returned by this method, call VixHost_Connect()
+//   with NULL as the 'username' and the ticket as the 'password'.
 //
 // Since VMware Server 1.0
 func Connect(
@@ -423,16 +452,20 @@ func (h *Host) FindItems() {
 // Remarks:
 //
 // * This function opens a virtual machine on the host instance
-//   The virtual machine is identified by vmxFile, which is a path name to the configuration file (.VMX file) for that virtual machine.
+//   The virtual machine is identified by vmxFile, which is a path name to the
+//   configuration file (.VMX file) for that virtual machine.
 // * The format of the path name depends on the host operating system.
-//   For example, a path name for a Windows host requires backslash as a directory separator,
-//   whereas a Linux host requires a forward slash. If the path name includes backslash characters,
-//   you need to precede each one with an escape character. For VMware Server 2.x,
-//   the path contains a preceeding data store, for example [storage1] vm/vm.vmx.
-// * For VMware Server hosts, a virtual machine must be registered before you can open it.
-//   You can register a virtual machine by opening it with the VMware Server Console,
-//   through the vmware-cmd command with the register parameter, or with host.RegisterVM().
-// * For vSphere, the virtual machine opened may not be the one desired if more than one Datacenter contains VmxFile.
+//   For example, a path name for a Windows host requires backslash as a
+//   directory separator, whereas a Linux host requires a forward slash. If the
+//   path name includes backslash characters, you need to precede each one with
+//   an escape character. For VMware Server 2.x, the path contains a preceeding
+//   data store, for example [storage1] vm/vm.vmx.
+// * For VMware Server hosts, a virtual machine must be registered before you
+//   can open it. You can register a virtual machine by opening it with the
+//   VMware Server Console, through the vmware-cmd command with the register
+//   parameter, or with Host.RegisterVM().
+// * For vSphere, the virtual machine opened may not be the one desired if more
+//   than one Datacenter contains VmxFile.
 // * To open an encrypted virtual machine, pass its correspondent password.
 //
 // Since VMware Workstation 7.0
@@ -493,15 +526,21 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 //
 // Remarks:
 //
-// * This function registers the virtual machine identified by vmxFile, which is a storage path to the configuration
-//   file (.vmx) for that virtual machine. You can register a virtual machine regardless of its power state.
+// * This function registers the virtual machine identified by vmxFile, which
+//   is a storage path to the configuration file (.vmx) for that virtual machine.
+//   You can register a virtual machine regardless of its power state.
 // * The format of the path name depends on the host operating system.
-//   If the path name includes backslash characters, you need to precede each one with an escape character.
-//   Path to storage [standard] or [storage1] may vary.
-// * For VMware Server 1.x, supply the full path name instead of storage path, and specify provider VMWARE_SERVER to connect.
-// * This function has no effect on Workstation or Player, which lack a virtual machine inventory.
-// * It is not a Vix error to register an already-registered virtual machine, although the VMware Server UI shows an error icon in the Task pane.
-//   Trying to register a non-existent virtual machine results in error 2000, VIX_E_NOT_FOUND.
+//   If the path name includes backslash characters, you need to precede each
+//   one with an escape character. Path to storage [standard] or [storage1] may
+//   vary.
+// * For VMware Server 1.x, supply the full path name instead of storage path,
+//   and specify provider VMWARE_SERVER to connect.
+// * This function has no effect on Workstation or Player, which lack a virtual
+//   machine inventory.
+// * It is not a Vix error to register an already-registered virtual machine,
+//   although the VMware Server UI shows an error icon in the Task pane.
+//   Trying to register a non-existent virtual machine results in error 2000,
+//   VIX_E_NOT_FOUND.
 //
 // Since VMware Server 1.0
 func (h *Host) RegisterVm(vmxFile string) error {
@@ -536,14 +575,18 @@ func (h *Host) RegisterVm(vmxFile string) error {
 // Remarks:
 //
 // * This function unregisters the virtual machine identified by vmxFile,
-//   which is a storage path to the configuration file (.vmx) for that virtual machine.
-//   A virtual machine must be powered off to unregister it.
+//   which is a storage path to the configuration file (.vmx) for that virtual
+//   machine. A virtual machine must be powered off to unregister it.
 // * The format of the storage path depends on the host operating system.
-//   If the storage path includes backslash characters, you need to precede each one with an escape character.
-//   Path to storage [standard] or [storage1] may vary.
-// * For VMware Server 1.x, supply the full path name instead of storage path, and specify VMWARE_SERVER provider to connect.
-// * This function has no effect on Workstation or Player, which lack a virtual machine inventory.
-// * It is not a Vix error to unregister an already-unregistered virtual machine, nor is it a Vix error to unregister a non-existent virtual machine.
+//   If the storage path includes backslash characters, you need to precede each
+//   one with an escape character. Path to storage [standard] or [storage1] may
+//   vary.
+// * For VMware Server 1.x, supply the full path name instead of storage path,
+//   and specify VMWARE_SERVER provider to connect.
+// * This function has no effect on Workstation or Player, which lack a virtual
+//   machine inventory.
+// * It is not a Vix error to unregister an already-unregistered virtual machine,
+//   nor is it a Vix error to unregister a non-existent virtual machine.
 //
 // Since VMware Server 1.0
 func (h *Host) UnregisterVm(vmxFile string) error {
@@ -568,7 +611,8 @@ func (h *Host) UnregisterVm(vmxFile string) error {
 	return nil
 }
 
-// Copies a file or directory from the local system (where the Vix client is running) to the guest operating system.
+// Copies a file or directory from the local system (where the Vix client is
+// running) to the guest operating system.
 //
 // Parameters:
 //
@@ -578,19 +622,29 @@ func (h *Host) UnregisterVm(vmxFile string) error {
 //
 // Remarks:
 //
-// * The virtual machine must be running while the file is copied from the Vix client machine to the guest operating system.
-// * Existing files of the same name are overwritten, and folder contents are merged.
-// * The copy operation requires VMware Tools to be installed and running in the guest operating system.
-// * You must call VixVM_LoginInGuest() before calling this function.
+// * The virtual machine must be running while the file is copied from the Vix
+//   client machine to the guest operating system.
+// * Existing files of the same name are overwritten, and folder contents are
+//   merged.
+// * The copy operation requires VMware Tools to be installed and running in
+//   the guest operating system.
+// * You must call VM.LoginInGuest() before calling this function in order
+//   to get a Guest instance.
 // * The format of the file name depends on the guest or local operating system.
-//   For example, a path name for a Microsoft Windows guest or host requires backslash as a directory separator,
-//   whereas a Linux guest or host requires a forward slash. If the path name includes backslash characters,
+//   For example, a path name for a Microsoft Windows guest or host requires
+//   backslash as a directory separator, whereas a Linux guest or host requires
+//   a forward slash. If the path name includes backslash characters,
 //   you need to precede each one with an escape character.
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
-// * If any file fails to be copied, Vix aborts the operation, does not attempt to copy the remaining files, and returns an error.
-// * In order to copy a file to a mapped network drive in a Windows guest operating system,
-//   it is necessary to call VixVM_LoginInGuest() with the VIX_LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag set.
-//   Using the interactive session option incurs an overhead in file transfer speed.
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
+// * If any file fails to be copied, Vix aborts the operation, does not attempt
+//   to copy the remaining files, and returns an error.
+// * In order to copy a file to a mapped network drive in a Windows guest
+//   operating system,
+//   it is necessary to call VixVM_LoginInGuest() with the
+//   LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag set.
+//   Using the interactive session option incurs an overhead in file transfer
+//   speed.
 //
 //  Since VMware Server 1.0
 //  Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -652,16 +706,22 @@ type VM struct {
 	IsRunning bool
 }
 
-// This function enables or disables all shared folders as a feature for a virtual machine.
+// This function enables or disables all shared folders as a feature for a
+// virtual machine.
 //
 // Remarks:
 //
-// * This function enables/disables all shared folders as a feature on a virtual machine.
-//   In order to access shared folders on a guest, the feature has to be enabled, and in addition, the individual shared folder has to be enabled.
+// * This function enables/disables all shared folders as a feature on a
+//   virtual machine.
+//   In order to access shared folders on a guest, the feature has to be enabled,
+//   and in addition, the individual shared folder has to be enabled.
 // * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * In this release, this function requires the virtual machine to be powered on with VMware Tools installed.
-// * Shared folders are not supported for the following guest operating systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * On Linux virtual machines, calling this function will automatically mount shared folder(s) in the guest.
+// * In this release, this function requires the virtual machine to be powered
+//   on with VMware Tools installed.
+// * Shared folders are not supported for the following guest operating systems:
+//   Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+// * On Linux virtual machines, calling this function will automatically mount
+//   shared folder(s) in the guest.
 //
 // Since VMware Workstation 6.0, not available on Server 2.0.
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -706,23 +766,31 @@ func (v *VM) EnableSharedFolders(enabled bool) error {
 //
 // Remarks:
 //
-// * This function creates a local mount point in the guest file system and mounts a shared folder exported by the host.
-// * Shared folders will only be accessible inside the guest operating system if shared folders are enabled for the virtual machine.
+// * This function creates a local mount point in the guest file system and
+//   mounts a shared folder exported by the host.
+// * Shared folders will only be accessible inside the guest operating system
+//   if shared folders are enabled for the virtual machine.
 //   See the documentation for VM.EnableSharedFolders().
 // * The folder options include:
 // 	 SHAREDFOLDER_WRITE_ACCESS - Allow write access.
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
-// * The hostpath argument must specify a path to a directory that exists on the host, or an error will result.
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
+// * The hostpath argument must specify a path to a directory that exists on the
+//   host, or an error will result.
 // * If a shared folder with the same name exists before calling this function,
 //   the job handle returned by this function will return VIX_E_ALREADY_EXISTS.
 // * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * When creating shared folders in a Windows guest, there might be a delay before
-//   contents of a shared folder are visible to functions such as Guest.IsFile() and Guest.RunProgram().
-// * Shared folders are not supported for the following guest operating systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered on with VMware Tools installed.
+// * When creating shared folders in a Windows guest, there might be a delay
+//   before contents of a shared folder are visible to functions such as
+//   Guest.IsFile() and Guest.RunProgram().
+// * Shared folders are not supported for the following guest operating
+//   systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+// * In this release, this function requires the virtual machine to be powered
+//   on with VMware Tools installed.
 // * To determine in which directory in the guest the shared folder will be,
-//   query Guest.SharedFoldersParentDir(). When the virtual machine is powered on and the VMware Tools are running, this property will contain
-//   the path to the parent directory of the shared folders for that virtual machine.
+//   query Guest.SharedFoldersParentDir(). When the virtual machine is powered
+//   on and the VMware Tools are running, this property will contain the path to
+//   the parent directory of the shared folders for that virtual machine.
 //
 // Since VMware Workstation 6.0, not available on Server 2.0.
 func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOption) error {
@@ -756,13 +824,17 @@ func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOptio
 //
 // Remarks:
 //
-// * This function removes a shared folder in the virtual machine referenced by the VM object
+// * This function removes a shared folder in the virtual machine referenced by
+//   the VM object
 // * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * Shared folders are not supported for the following guest operating systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered on with VMware Tools installed.
-// * Depending on the behavior of the guest operating system, when removing shared folders,
-//   there might be a delay before the shared folder is no longer visible to programs running
-//   within the guest operating system and to functions such as Guest.IsFile()
+// * Shared folders are not supported for the following guest operating
+//   systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+// * In this release, this function requires the virtual machine to be powered
+//   on with VMware Tools installed.
+// * Depending on the behavior of the guest operating system, when removing
+//   shared folders, there might be a delay before the shared folder is no
+//   longer visible to programs running within the guest operating system and
+//   to functions such as Guest.IsFile()
 //
 // Since VMware Workstation 6.0
 
@@ -792,8 +864,10 @@ func (v *VM) RemoveSharedFolder(guestpath string) error {
 //
 // Remarks:
 //
-// * This function captures the current screen image and returns it as a []byte result.
-// * For security reasons, this function requires a successful call to VM.LoginInGuest() must be made.
+// * This function captures the current screen image and returns it as a
+//   []byte result.
+// * For security reasons, this function requires a successful call to
+//   VM.LoginInGuest() must be made.
 //
 // Since VMware Workstation 6.5
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -1699,27 +1773,35 @@ func (v *VM) LoginInGuest(username, password string, options GuestLoginOption) (
 	return guest, nil
 }
 
-// This function signals the job handle when VMware Tools has successfully started in the guest operating system.
+// This function signals the job handle when VMware Tools has successfully
+// started in the guest operating system.
 // VMware Tools is a collection of services that run in the guest.
 //
 // Parameters:
 //
 // * timeout: The timeout in seconds. If VMware Tools has not started by
 //            this time, the operation completes with an error.
-//            If the value of this argument is zero or negative, then this operation will wait
-//            indefinitely until the VMware Tools start running in the guest operating system.
+//            If the value of this argument is zero or negative, then this
+//  		  operation will wait indefinitely until the VMware Tools start
+//            running in the guest operating system.
 //
 // Remarks:
 //
-// * This function signals the job when VMware Tools has successfully started in the guest operating system.
+// * This function signals the job when VMware Tools has successfully started
+//   in the guest operating system.
 //   VMware Tools is a collection of services that run in the guest.
-// * VMware Tools must be installed and running for some Vix functions to operate correctly.
-//   If VMware Tools is not installed in the guest operating system, or if the virtual machine
+// * VMware Tools must be installed and running for some Vix functions to
+//   operate correctly.
+//   If VMware Tools is not installed in the guest operating system, or if the
+//   virtual machine
 //   is not powered on, this function reports an error.
-// * The ToolsState property of the virtual machine object is undefined until VM.WaitForToolsInGuest() reports that VMware Tools is running.
-// * This function should be called after calling any function that resets or reboots the state of the guest operating system,
-//   but before calling any functions that require VMware Tools to be running. Doing so assures that VMware Tools are once again
-//   up and running. Functions that reset the guest operating system in this way include:
+// * The ToolsState property of the virtual machine object is undefined until
+//   VM.WaitForToolsInGuest() reports that VMware Tools is running.
+// * This function should be called after calling any function that resets or
+//   reboots the state of the guest operating system, but before calling any
+//   functions that require VMware Tools to be running. Doing so assures that
+//   VMware Tools are once again up and running. Functions that reset the guest
+//   operating system in this way include:
 //   VM.PowerOn()
 //   VM.Reset()
 //   VM.RevertToSnapshot()
@@ -1753,7 +1835,8 @@ type Guest struct {
 	SharedFoldersParentDir string
 }
 
-// Copies a file or directory from the guest operating system to the local system (where the Vix client is running).
+// Copies a file or directory from the guest operating system to the local
+// system (where the Vix client is running).
 //
 // Parameters:
 //
@@ -1793,9 +1876,12 @@ func (g *Guest) CopyFileToHost(guestpath, hostpath string) error {
 //
 // Remarks:
 //
-// * If the parent directories for the specified path do not exist, this function will create them.
-// * If the directory already exists, the error will be set to VIX_E_FILE_ALREADY_EXISTS.
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+// * If the parent directories for the specified path do not exist, this
+//   function will create them.
+// * If the directory already exists, the error will be set to
+//   VIX_E_FILE_ALREADY_EXISTS.
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
 //
 // Since Workstation 6.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -1897,7 +1983,8 @@ func (g *Guest) RmDir(path string) error {
 // filepath: The path to the file to be deleted.
 //
 // Remarks:
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
 //
 // Since VMware Workstation 6.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -1931,7 +2018,8 @@ func (g *Guest) RmFile(filepath string) error {
 //
 // Remarks:
 //
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
 //
 // Since VMware Workstation 6.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -1969,9 +2057,13 @@ func (g *Guest) IsDir(path string) (bool, error) {
 //
 // Remarks:
 //
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
-// * If filepath exists as a file system object, but is not a normal file (e.g. it is a directory, device, UNIX domain socket, etc),
-//   then VIX_OK is returned, and VIX_PROPERTY_JOB_RESULT_GUEST_OBJECT_EXISTS is set to FALSE.
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
+// * If filepath exists as a file system object, but is not a normal file (e.g.
+//   it is a directory, device, UNIX domain socket, etc),
+//   then VIX_OK is returned, and VIX_PROPERTY_JOB_RESULT_GUEST_OBJECT_EXISTS
+//   is set to FALSE.
+//
 // Since VMware Workstation 6.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
 func (g *Guest) IsFile(filepath string) (bool, error) {
@@ -2070,8 +2162,10 @@ func (g *Guest) Ps() {
 // context created by a previous call to VM.LoginInGuest().
 //
 // Remarks:
-// * This function has no effect and returns success if VM.LoginInGuest() has not been called.
-// * If you call this function while guest operations are in progress, subsequent operations may fail with a permissions error.
+// * This function has no effect and returns success if VM.LoginInGuest()
+//   has not been called.
+// * If you call this function while guest operations are in progress,
+//   subsequent operations may fail with a permissions error.
 // It is best to wait for guest operations to complete before logging out.
 //
 // Since VMware Workstation 6.0
