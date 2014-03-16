@@ -66,6 +66,21 @@ VixError isFileOrDir(VixHandle jobHandle, int* result) {
 		result,
 		VIX_PROPERTY_NONE);
 }
+
+VixError runProgramResult(
+	VixHandle jobHandle,
+	uint64* pid,
+	int* elapsedTime,
+	int* exitCode) {
+	return VixJob_Wait(jobHandle,
+		VIX_PROPERTY_JOB_RESULT_PROCESS_ID,
+		pid,
+		VIX_PROPERTY_JOB_RESULT_GUEST_PROGRAM_ELAPSED_TIME,
+		elapsedTime,
+		VIX_PROPERTY_JOB_RESULT_GUEST_PROGRAM_EXIT_CODE,
+		exitCode,
+		VIX_PROPERTY_NONE);
+}
 */
 import "C"
 
@@ -236,6 +251,13 @@ const (
 	VMPOWEROP_START_VM_PAUSED           VMPowerOption = C.VIX_VMPOWEROP_START_VM_PAUSED
 )
 
+type RunProgramOption int
+
+const (
+	RUNPROGRAM_RETURN_IMMEDIATELY RunProgramOption = C.VIX_RUNPROGRAM_RETURN_IMMEDIATELY
+	RUNPROGRAM_ACTIVATE_WINDOW    RunProgramOption = C.VIX_RUNPROGRAM_ACTIVATE_WINDOW
+)
+
 type Host struct {
 	handle C.VixHandle
 }
@@ -308,10 +330,12 @@ type Host struct {
 //   Using the ticket string returned by this method, call VixHost_Connect() with NULL as the 'username' and the ticket as the 'password'.
 //
 // Since VMware Server 1.0
-func Connect(hostname string,
+func Connect(
+	hostname string,
 	port uint,
 	username, password string,
-	provider, options int) (*Host, error) {
+	provider, options int,
+) (*Host, error) {
 
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var hostHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -1830,7 +1854,8 @@ func (g *Guest) MkTemp() (string, error) {
 //
 // Remarks:
 //
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+// * Only absolute paths should be used for files in the guest;
+//   the resolution of relative paths is not specified.
 //
 // Since VMware Workstation 6.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -1975,7 +2000,8 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 // filepath: The path name of the file in the guest.
 //
 // Remarks:
-// * Only absolute paths should be used for files in the guest; the resolution of relative paths is not specified.
+// * Only absolute paths should be used for files in the guest;
+//   the resolution of relative paths is not specified.
 //
 // Since VMware Workstation 6.5
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -1983,9 +2009,43 @@ func (g *Guest) FileInfo(filepath string) {
 
 }
 
-//VixVM_KillProcessInGuest
-func (g *Guest) Kill() {
+// This function terminates a process in the guest operating system.
+//
+// Parameters:
+//
+// pid: The ID of the process to be killed.
+//
+// Remarks:
+//
+// * Depending on the behavior of the guest operating system, there may be a
+//   short delay after the job completes before the process truly disappears.
+// * Because of differences in how various Operating Systems handle process IDs,
+//   Vix may return either VIX_E_INVALID_ARG or VIX_E_NO_SUCH_PROCESS
+//   for invalid process IDs.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) Kill(pid uint64) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_KillProcessInGuest(g.handle,
+		C.uint64(pid), // file path name
+		0,             // options
+		nil,           // callbackProc
+		nil)           // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
 //VixVM_ListDirectoryInGuest
@@ -2029,9 +2089,93 @@ func (g *Guest) Logout() error {
 	return nil
 }
 
-//VixVM_RunProgramInGuest
-func (g *Guest) RunProgram() {
+// This function runs a program in the guest operating system.
+// The program must be stored on a file system available to the guest
+// before calling this function.
+//
+// Parameters:
+//
+// path: The path name of an executable file on the guest operating system.
+// args: A string to be passed as command line arguments to the executable.
+// options: Run options for the program. See the remarks below.
+//
+// Remarks:
+//
+// * This function runs a program in the guest operating system.
+// 	 The program must be stored on a file system available to the guest
+//	 before calling this function.
+// * The current working directory for the program in the guest is not defined.
+//   Absolute paths should be used for files in the guest, including
+//   command-line arguments.
+// * If the program to run in the guest is intended to be visible to the user
+//   in the guest, such as an application with a graphical user interface,
+//   you must call VM.LoginInGuest() with
+//   LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT as the option before calling
+//   this function. This will ensure that the program is run within a
+//   graphical session that is visible to the user.
+// * If the options parameter is 0, this function will report completion to
+//   the job handle when the program exits in the guest operating system.
+//   Alternatively, you can pass RUNPROGRAM_RETURN_IMMEDIATELY as the value of
+//   the options parameter, and this function will return as soon as the program
+//	 starts in the guest.
+// * For Windows guest operating systems, when running a program with a
+//   graphical user interface, you can pass RUNPROGRAM_ACTIVATE_WINDOW as the
+//   value of the options parameter. This option will ensure that the
+//   application's window is visible and not minimized on the guest's screen.
+//   This can be combined with the RUNPROGRAM_RETURN_IMMEDIATELY flag using
+//   the bitwise inclusive OR operator (|). RUNPROGRAM_ACTIVATE_WINDOW
+//   has no effect on Linux guest operating systems.
+// * On a Linux guest operating system, if you are running a program with a
+//   graphical user interface, it must know what X Windows display to use,
+//   for example host:0.0, so it can make the program visible on that display.
+//   Do this by passing the -display argument to the program, if it supports
+//   that argument, or by setting the DISPLAY environment variable on the guest.
+//   See documentation on VM.WriteVariable()
+// * This functions returns three parameters:
+//   PROCESS_ID: the process id; however, if the guest has
+//   an older version of Tools (those released with Workstation 6 and earlier)
+//   and the RUNPROGRAM_RETURN_IMMEDIATELY flag is used, then the process ID
+//   will not be returned from the guest and this property will be 0
+//   ELAPSED_TIME: the process elapsed time in seconds;
+//   EXIT_CODE: the process exit code.
+//   If the option parameter is RUNPROGRAM_RETURN_IMMEDIATELY, the latter two
+//   will both be 0.
+// * Depending on the behavior of the guest operating system, there may be a
+//   short delay after the job completes before the process is visible in the
+//   guest operating system.
+//
+// Since VMware Server 1.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) RunProgram(path, args string, options RunProgramOption) (uint64, int, int, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var pid *C.uint64
+	var elapsedtime *C.int
+	var exitCode *C.int
 
+	jobHandle = C.VixVM_RunProgramInGuest(g.handle,
+		C.CString(path),                 //guestProgramName
+		C.CString(args),                 //commandLineArgs
+		C.VixRunProgramOptions(options), //options
+		C.VIX_INVALID_HANDLE,            //propertyListHandle
+		nil,                             // callbackProc
+		nil)                             // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.runProgramResult(jobHandle, pid, elapsedtime, exitCode)
+	defer C.Vix_FreeBuffer(unsafe.Pointer(pid))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(elapsedtime))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(exitCode))
+
+	if C.VIX_OK != err {
+		return 0, 0, 0, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return uint64(*pid), int(*elapsedtime), int(*exitCode), nil
 }
 
 //VixVM_RunScriptInGuest
