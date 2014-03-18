@@ -91,7 +91,8 @@ import (
 
 // VixPowerState
 //
-// These are the possible values reported for VIX_PROPERTY_VM_POWER_STATE property.
+// These are the possible values reported for VIX_PROPERTY_VM_POWER_STATE
+// property.
 // These values are bitwise flags.
 // The actual value returned for may be a bitwise OR of one more of these flags,
 // along with other reserved values not documented here.
@@ -285,7 +286,8 @@ type Host struct {
 // Parameters:
 //
 // Provider:
-// * With vCenter Server, ESX/ESXi hosts, and VMware Server 2.0, VMWARE_VI_SERVER.
+// * With vCenter Server, ESX/ESXi hosts, and VMware Server 2.0,
+//   VMWARE_VI_SERVER.
 // * With VMware Workstation, use VMWARE_WORKSTATION.
 // * With VMware Workstation (shared mode), use VMWARE_WORKSTATION_SHARED.
 // * With VMware Player, use VMWARE_PLAYER.
@@ -301,8 +303,8 @@ type Host struct {
 // just the DNS name or IP address.
 // Credentials are required even for connections made locally.
 // With Workstation, use nil to connect to the local host.
-// With VMware Server 1.0.x, use the DNS name or IP address for remote connections,
-// or the same as Workstation for local connections.
+// With VMware Server 1.0.x, use the DNS name or IP address for remote
+// connections, or the same as Workstation for local connections.
 //
 // Port:
 // TCP/IP port on the remote host.
@@ -903,30 +905,37 @@ func (v *VM) Screenshot() ([]byte, error) {
 // cloneType:
 // Must be either CLONETYPE_FULL or CLONETYPE_LINKED.
 // * CLONETYPE_FULL - Creates a full, independent clone of the virtual machine.
-// * CLONETYPE_LINKED - Creates a linked clone, which is a copy of a virtual machine that shares
-//                      virtual disks with the parent virtual machine in an ongoing manner.
-//                      This conserves disk space as long as the parent and clone do not change too much from their original state.
+// * CLONETYPE_LINKED - Creates a linked clone, which is a copy of a virtual
+//                      machine that shares virtual disks with the parent
+//                      virtual machine in an ongoing manner.
+//                      This conserves disk space as long as the parent and
+//                      clone do not change too much from their original state.
 //
 // destVmxFile:
 // The path name of the virtual machine configuration file that will
 // be created for the virtual machine clone produced by this operation.
-// This should be a full absolute path name, with directory names delineated according to host system convention: \ for Windows and / for Linux.
-// options
-//
+// This should be a full absolute path name, with directory names delineated
+// according to host system convention: \ for Windows and / for Linux.
 //
 // Remarks:
 //
 // * The function returns a new VM instance which is a clone of its parent VM.
 // * It is not possible to create a full clone of a powered on virtual machine.
-//   You must power off or suspend a virtual machine before creating a full clone of that machine.
-// * With a suspended virtual machine, requesting a linked clone results in error 3007 VIX_E_VM_IS_RUNNING.
-//   Suspended virtual machines retain memory state, so proceeding with a linked clone could cause loss of data.
-// * A linked clone must have access to the parent's virtual disks. Without such access, you cannot use a linked clone
+//   You must power off or suspend a virtual machine before creating a full
+//   clone of that machine.
+// * With a suspended virtual machine, requesting a linked clone results in
+//   error 3007 VIX_E_VM_IS_RUNNING.
+//   Suspended virtual machines retain memory state, so proceeding with a
+//   linked clone could cause loss of data.
+// * A linked clone must have access to the parent's virtual disks. Without
+//   such access, you cannot use a linked clone
 //   at all because its file system will likely be incomplete or corrupt.
-// * Deleting a virtual machine that is the parent of a linked clone renders the linked clone useless.
-// * Because a full clone does not share virtual disks with the parent virtual machine,
-//   full clones generally perform better than linked clones. However, full clones take longer
-//   to create than linked clones. Creating a full clone can take several minutes if the files involved are large.
+// * Deleting a virtual machine that is the parent of a linked clone renders
+//   the linked clone useless.
+// * Because a full clone does not share virtual disks with the parent virtual
+//   machine, full clones generally perform better than linked clones.
+//   However, full clones take longer to create than linked clones. Creating a
+//   full clone can take several minutes if the files involved are large.
 // * This function is not supported when using the VMWARE_PLAYER provider.
 func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -974,26 +983,36 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 // A user-defined description for the snapshot.
 //
 // options:
-// Flags to specify how the snapshot should be created. Any combination of the following or 0 to exclude memory:
-// * SNAPSHOT_INCLUDE_MEMORY - Captures the full state of a running virtual machine, including the memory.
+// Flags to specify how the snapshot should be created. Any combination of the
+// following or 0 to exclude memory:
+//    * SNAPSHOT_INCLUDE_MEMORY - Captures the full state of a running virtual
+//      machine, including the memory.
 //
 // Remarks:
 //
 // * This function creates a child snapshot of the current snapshot.
 // * If a virtual machine is suspended, you cannot snapshot it more than once.
-// * If a powered-on virtual machine gets a snapshot created with option 0 (exclude memory),
-//   the power state is not saved, so reverting to the snapshot sets powered-off state.
-// * The 'name' and 'description' parameters can be set but not retrieved using the VIX API.
-// * VMware Server supports only a single snapshot for each virtual machine. The following considerations apply to VMware Server:
-//    * If you call this function a second time for the same virtual machine without first deleting the snapshot,
+// * If a powered-on virtual machine gets a snapshot created with option 0
+//   (exclude memory), the power state is not saved, so reverting to the
+//   snapshot sets powered-off state.
+// * The 'name' and 'description' parameters can be set but not retrieved
+//   using the VIX API.
+// * VMware Server supports only a single snapshot for each virtual machine.
+//   The following considerations apply to VMware Server:
+//    * If you call this function a second time for the same virtual machine
+//      without first deleting the snapshot,
 //      the second call will overwrite the previous snapshot.
-//    * A virtual machine imported to VMware Server from another VMware product might have more than one snapshot at the
-//      time it is imported. In that case, you can use this function to add a new snapshot to the series.
-// * Starting in VMware Workstation 6.5, snapshot operations are allowed on virtual machines that are part of a team.
-//   Previously, this operation failed with error code VIX_PROPERTY_VM_IN_VMTEAM. Team members snapshot independently
-//   so they can have different and inconsistent snapshot states.
+//    * A virtual machine imported to VMware Server from another VMware product
+//      might have more than one snapshot at the time it is imported. In that
+//      case, you can use this function to add a new snapshot to the series.
+// * Starting in VMware Workstation 6.5, snapshot operations are allowed on
+//   virtual machines that are part of a team.
+//   Previously, this operation failed with error code
+//   VIX_PROPERTY_VM_IN_VMTEAM. Team members snapshot independently so they can
+//   have different and inconsistent snapshot states.
 // * This function is not supported when using the VMWARE_PLAYER provider.
-// * If the virtual machine is open and powered off in the UI, this function now closes the virtual machine in the UI before creating the snapshot.
+// * If the virtual machine is open and powered off in the UI, this function now
+//   closes the virtual machine in the UI before creating the snapshot.
 //
 // Since VMware Workstation 6.0
 func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOption) (*Snapshot, error) {
@@ -1043,12 +1062,17 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 // Remarks:
 //
 // * This function permanently deletes a virtual machine from your host system.
-//    You can accomplish the same effect by deleting all virtual machine files using the host file system.
-//    This function simplifies the task by deleting all VMware files in a single function call.
-//    If a deleteOptions value of 0 is specified, the virtual disk (vmdk) files will not be deleted.
-//    This function does not delete other user files in the virtual machine folder.
-// * This function is successful only if the virtual machine is powered off or suspended.
-// * Deleting a virtual machine that is the parent of a linked clone renders the linked clone useless.
+//    You can accomplish the same effect by deleting all virtual machine files
+//    using the host file system. This function simplifies the task by deleting
+//    all VMware files in a single function call.
+//    If a deleteOptions value of 0 is specified, the virtual disk (vmdk) files
+//    will not be deleted.
+//    This function does not delete other user files in the virtual machine
+//    folder.
+// * This function is successful only if the virtual machine is powered off or
+//   suspended.
+// * Deleting a virtual machine that is the parent of a linked clone renders
+//   the linked clone useless.
 //
 // since VMware Server 1.0
 func (v *VM) Delete(options VmDeleteOption) error {
@@ -1071,11 +1095,13 @@ func (v *VM) Delete(options VmDeleteOption) error {
 	return nil
 }
 
-// This function returns the handle of the current active snapshot belonging to the virtual machine
+// This function returns the handle of the current active snapshot belonging to
+// the virtual machine
 //
 // Remarks:
 //
-// * This function returns the handle of the current active snapshot belonging to the virtual machine.
+// * This function returns the handle of the current active snapshot belonging
+//   to the virtual machine.
 // * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.0
@@ -1103,12 +1129,15 @@ func (v *VM) CurrentSnapshot() (*Snapshot, error) {
 //
 // Remarks:
 //
-// * When the snapshot name is a duplicate, it returns error 13017 VIX_E_SNAPSHOT_NONUNIQUE_NAME.
-// * When there are multiple snapshots with the same name, or the same path to that name,
-//   you cannot specify a unique name, but you can to use the UI to rename duplicates.
-// * You can specify the snapshot name as a path using '/' or '\\' as path separators,
-//   including snapshots in the tree above the named snapshot,
-//   for example 'a/b/c' or 'x/x'. Do not mix '/' and '\\' in the same path expression.
+// * When the snapshot name is a duplicate, it returns error 13017
+//   VIX_E_SNAPSHOT_NONUNIQUE_NAME.
+// * When there are multiple snapshots with the same name, or the same path to
+//   that name, you cannot specify a unique name, but you can to use the UI to
+//   rename duplicates.
+// * You can specify the snapshot name as a path using '/' or '\\' as path
+//   separators, including snapshots in the tree above the named snapshot,
+//   for example 'a/b/c' or 'x/x'. Do not mix '/' and '\\' in the same path
+//   expression.
 // * This function is not supported when using the VMWARE_PLAYER provider.
 //
 // Since VMware Workstation 6.0
@@ -1127,17 +1156,22 @@ func (v *VM) SnapshotByName(name string) (*Snapshot, error) {
 	return &Snapshot{handle: snapshotHandle}, nil
 }
 
-// This function returns the number of top-level (root) snapshots belonging to a virtual machine.
+// This function returns the number of top-level (root) snapshots belonging to a
+// virtual machine.
 //
 // Remarks:
 //
-// * This function returns the number of top-level (root) snapshots belonging to a virtual machine.
+// * This function returns the number of top-level (root) snapshots belonging to
+//   a virtual machine.
 //   A top-level snapshot is one that is not based on any previous snapshot.
-//   If the virtual machine has more than one snapshot, the snapshots can be a sequence in which
-//   each snapshot is based on the previous one, leaving only a single top-level snapshot.
-//   However, if applications create branched trees of snapshots, a single virtual machine can have several top-level snapshots.
-// * VMware Server can manage only a single snapshot for each virtual machine. All other snapshots
-//   in a sequence are ignored. The return value is always 0 or 1.
+//   If the virtual machine has more than one snapshot, the snapshots can be a
+//   sequence in which each snapshot is based on the previous one, leaving only
+//   a single top-level snapshot.
+//   However, if applications create branched trees of snapshots, a single
+//   virtual machine can have several top-level snapshots.
+// * VMware Server can manage only a single snapshot for each virtual machine.
+//   All other snapshots in a sequence are ignored. The return value is always
+//   0 or 1.
 // * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.0
@@ -1156,14 +1190,18 @@ func (v *VM) TotalRootSnapshots() (int, error) {
 	return int(result), nil
 }
 
-// This function returns the number of shared folders mounted in the virtual machine.
+// This function returns the number of shared folders mounted in the virtual
+// machine.
 //
 // Remarks:
 //
-// * This function returns the number of shared folders mounted in the virtual machine
+// * This function returns the number of shared folders mounted in the virtual
+//   machine.
 // * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * Shared folders are not supported for the following guest operating systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered on with VMware Tools installed.
+// * Shared folders are not supported for the following guest operating systems:
+//   Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+// * In this release, this function requires the virtual machine to be powered
+//   on with VMware Tools installed.
 //
 // Since VMware Workstation 6.0
 func (v *VM) TotalSharedFolders() (int, error) {
@@ -1196,8 +1234,10 @@ func (v *VM) TotalSharedFolders() (int, error) {
 //
 // Remarks:
 //
-// * Snapshots are indexed from 0 to n-1, where n is the number of root snapshots. Use the function VM.TotalRootSnapshots to get the value of n.
-// * VMware Server can manage only a single snapshot for each virtual machine. The value of index can only be 0.
+// * Snapshots are indexed from 0 to n-1, where n is the number of root
+//   snapshots. Use the function VM.TotalRootSnapshots to get the value of n.
+// * VMware Server can manage only a single snapshot for each virtual machine.
+//   The value of index can only be 0.
 // * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Server 1.0
