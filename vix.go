@@ -1265,13 +1265,17 @@ func (v *VM) SharedFolderState() {
 
 }
 
-// This function pauses a virtual machine. See Remarks section for pause behavior when used with different operations.
+// This function pauses a virtual machine. See Remarks section for pause
+// behavior when used with different operations.
 //
 // * This stops execution of the virtual machine.
-// * Functions that invoke guest operations should not be called when the virtual machine is paused.
+// * Functions that invoke guest operations should not be called when the
+//   virtual machine is paused.
 // * Call VM.Resume() to continue execution of the virtual machine.
-// * Calling VM.Reset(), VM.PowerOff(), and VM.Suspend() will successfully work when paused.
-//   The pause state is not preserved in a suspended virtual machine; a subsequent VM.PowerOn() will not remember the previous pause state.
+// * Calling VM.Reset(), VM.PowerOff(), and VM.Suspend() will successfully
+//   work when paused. The pause state is not preserved in a suspended virtual
+//   machine; a subsequent VM.PowerOn() will not remember the previous
+//   pause state.
 // * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.5.
@@ -1311,7 +1315,8 @@ func (v *VM) Pause() error {
 //
 // Remarks:
 //
-// * This operation continues execution of a virtual machine that was stopped using VM.Pause().
+// * This operation continues execution of a virtual machine that was stopped
+//   using VM.Pause().
 // * Refer to VM.Pause() for pause/unpause behavior with different operations.
 // * This function is not supported when using the VMWARE_PLAYER provider
 //
@@ -1356,22 +1361,28 @@ func (v *VM) Resume() error {
 // Set of VMPowerOption flags to consider when powering off the virtual machine.
 //
 // Remarks:
-// * If you call this function while the virtual machine is suspended or powered off,
-//   the operation returns a VIX_E_VM_NOT_RUNNING error.
+// * If you call this function while the virtual machine is suspended or powered
+//   off, the operation returns a VIX_E_VM_NOT_RUNNING error.
 //   If suspended, the virtual machine remains suspended and is not powered off.
 //   If powered off, you can safely ignore the error.
-// * If you pass VMPOWEROP_NORMAL as an option, the virtual machine is powered off at the hardware level.
-//   Any state of the guest that was not committed to disk will be lost.
-// * If you pass VMPOWEROP_FROM_GUEST as an option, the function tries to power off the guest OS,
-//   ensuring a clean shutdown of the guest. This option requires that VMware Tools be installed and running in the guest.
-// * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest() returns,
-//   there is a short delay before VMPOWEROP_FROM_GUEST becomes available.
-//   During this time a job may return error 3009, VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
+// * If you pass VMPOWEROP_NORMAL as an option, the virtual machine is powered
+//   off at the hardware level. Any state of the guest that was not committed
+//   to disk will be lost.
+// * If you pass VMPOWEROP_FROM_GUEST as an option, the function tries to power
+//   off the guest OS, ensuring a clean shutdown of the guest. This option
+//   requires that VMware Tools be installed and running in the guest.
+// * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest()
+//   returns, there is a short delay before VMPOWEROP_FROM_GUEST becomes
+//   available.
+//   During this time a job may return error 3009,
+//   VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
 //   As a workaround, add a short sleep after the WaitForTools call.
-// * On a Solaris guest with UFS file system on the root partition, the VMPOWEROP_NORMAL
-//   parameter causes an error screen at next power on, which requires user intervention
-//   to update the Solaris boot archive by logging into the failsafe boot session from the GRUB menu.
-//   Hence, although UFS file systems are supported, VMware recommends using the ZFS file system for Solaris guests.
+// * On a Solaris guest with UFS file system on the root partition, the
+//   VMPOWEROP_NORMAL parameter causes an error screen at next power on, which
+//   requires user intervention to update the Solaris boot archive by logging
+//   into the failsafe boot session from the GRUB menu. Hence, although UFS file
+//   systems are supported, VMware recommends using the ZFS file system for
+//   Solaris guests.
 //
 // Since VMware Server 1.0
 func (v *VM) PowerOff(options VMPowerOption) error {
@@ -1405,21 +1416,32 @@ func (v *VM) PowerOff(options VMPowerOption) error {
 // options: VMPOWEROP_NORMAL or VMPOWEROP_LAUNCH_GUI.
 //
 // Remarks:
-// * This operation completes when the virtual machine has started to boot. If the VMware Tools have been installed on
-//   this guest operating system, you can call VM.WaitForToolsInGuest() to determine when the guest has finished booting.
-// * After powering on, you must call VM.WaitForToolsInGuest() before executing guest operations or querying guest properties.
-// * In Server 1.0, when you power on a virtual machine, the virtual machine is powered on independent of a
-//   console window. If a console window is open, it remains open. Otherwise, the virtual machine is powered on without a console window.
-// * To display a virtual machine with a Workstation user interface, the options parameter must have the VMPOWEROP_LAUNCH_GUI flag,
-//   and you must be connected to the host with the VMWARE_WORKSTATION provider flag. If there is an existing
-//   instance of the Workstation user interface, the virtual machine will power on in a new tab within that instance.
-//   Otherwise, a new instance of Workstation will open, and the virtual machine will power on there.
-// * To display a virtual machine with a Player user interface, the options parameter must have the VMPOWEROP_LAUNCH_GUI flag,
-//   and you must be connected to the host with the VMWARE_PLAYER flag. A new instance of Player will always open,
-//   and the virtual machine will power on there.
-// * This function can also be used to resume execution of a suspended virtual machine.
-// * The VMPOWEROP_LAUNCH_GUI option is not supported for encrypted virtual machines; attempting to power on with this
-//   option results in VIX_E_NOT_SUPPORTED.
+// * This operation completes when the virtual machine has started to boot.
+//   If the VMware Tools have been installed on this guest operating system, you
+//   can call VM.WaitForToolsInGuest() to determine when the guest has finished
+//   booting.
+// * After powering on, you must call VM.WaitForToolsInGuest() before executing
+//   guest operations or querying guest properties.
+// * In Server 1.0, when you power on a virtual machine, the virtual machine is
+//   powered on independent of a console window. If a console window is open,
+//   it remains open. Otherwise, the virtual machine is powered on without a
+//   console window.
+// * To display a virtual machine with a Workstation user interface, the options
+//   parameter must have the VMPOWEROP_LAUNCH_GUI flag, and you must be
+//   connected to the host with the VMWARE_WORKSTATION provider flag. If there
+//   is an existing instance of the Workstation user interface, the virtual
+//   machine will power on in a new tab within that instance.
+//   Otherwise, a new instance of Workstation will open, and the virtual machine
+//   will power on there.
+// * To display a virtual machine with a Player user interface, the options
+//   parameter must have the VMPOWEROP_LAUNCH_GUI flag, and you must be
+//   connected to the host with the VMWARE_PLAYER flag. A new instance of Player
+//   will always open, and the virtual machine will power on there.
+// * This function can also be used to resume execution of a suspended virtual
+//   machine.
+// * The VMPOWEROP_LAUNCH_GUI option is not supported for encrypted virtual
+//   machines; attempting to power on with this option results in
+//   VIX_E_NOT_SUPPORTED.
 //
 // Since VMware Server 1.0
 func (v *VM) PowerOn(options VMPowerOption) error {
@@ -1454,18 +1476,27 @@ func (v *VM) PowerOn(options VMPowerOption) error {
 // options: Must be VMPOWEROP_NORMAL or VMPOWEROP_FROM_GUEST.
 //
 // Remarks:
-// * If the virtual machine is not powered on when you call this function, it returns an error.
-// * If you pass VMPOWEROP_NORMAL as an option, this function is the equivalent of pressing the reset button on a physical machine.
-// * If you pass VMPOWEROP_FROM_GUEST as an option, this function tries to reset the guest OS, ensuring a clean shutdown of the guest.
-//   This option requires that the VMware Tools be installed and running in the guest.
-// * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest() returns, there is a short delay before
-//   VMPOWEROP_FROM_GUEST becomes available. During this time the function may return error 3009, VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
+// * If the virtual machine is not powered on when you call this function, it
+//   returns an error.
+// * If you pass VMPOWEROP_NORMAL as an option, this function is the equivalent
+//   of pressing the reset button on a physical machine.
+// * If you pass VMPOWEROP_FROM_GUEST as an option, this function tries to reset
+//   the guest OS, ensuring a clean shutdown of the guest.
+//   This option requires that the VMware Tools be installed and running in the
+//   guest.
+// * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest()
+//   returns, there is a short delay before VMPOWEROP_FROM_GUEST becomes
+//   available. During this time the function may return error 3009,
+//   VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
 //   As a workaround, add a short sleep after the WaitForTools call.
-// * After reset, you must call VM.WaitForToolsInGuest() before executing guest operations or querying guest properties.
-// * On a Solaris guest with UFS file system on the root partition, the VMPOWEROP_NORMAL parameter causes an error screen
-//   at next power on, which requires user intervention to update the Solaris boot archive by logging into the failsafe
-//   boot session from the GRUB menu. Hence, although UFS file systems are supported,
-//   VMware recommends using the ZFS file system for Solaris guests.
+// * After reset, you must call VM.WaitForToolsInGuest() before executing guest
+//   operations or querying guest properties.
+// * On a Solaris guest with UFS file system on the root partition, the
+//   VMPOWEROP_NORMAL parameter causes an error screen at next power on, which
+//   requires user intervention to update the Solaris boot archive by logging
+//   into the failsafe boot session from the GRUB menu. Hence, although UFS file
+//   systems are supported, VMware recommends using the ZFS file system for
+//   Solaris guests.
 //
 // Since VMware Server 1.0
 func (v *VM) Reset(options VMPowerOption) error {
@@ -1496,7 +1527,8 @@ func (v *VM) Reset(options VMPowerOption) error {
 //
 // Remarks:
 //
-// * If the virtual machine is not powered on when you call this function, the function returns the error VIX_E_VM_NOT_RUNNING.
+// * If the virtual machine is not powered on when you call this function, the
+//   function returns the error VIX_E_VM_NOT_RUNNING.
 // * Call VM.PowerOn() to resume running a suspended virtual machine.
 //
 // Since VMware Server 1.0
@@ -1531,22 +1563,35 @@ func (v *VM) Suspend() error {
 // Parameters:
 //
 // varType: The type of variable to read. The currently supported values are:
-// 		* VM_GUEST_VARIABLE - 	A "Guest Variable". This is a runtime-only value; it is never stored persistently.
-// 								This is the same guest variable that is exposed through the VMControl APIs, and is
-//								a simple way to pass runtime values in and out of the guest.
-// 		* VM_CONFIG_RUNTIME_ONLY - 	The configuration state of the virtual machine. This is the .vmx file that is stored on the host.
-//									You can read this and it will return the persistent data. If you write to this,
-//									it will only be a runtime change, so changes will be lost when the VM powers off.
-// 		* GUEST_ENVIRONMENT_VARIABLE - 	An environment variable in the guest of the VM. On a Windows NT series guest,
-//										writing these values is saved persistently so they are immediately visible to every process.
-//										On a Linux or Windows 9X guest, writing these values is not persistent so they are only visible
-//										to the VMware tools process.
+// 		* VM_GUEST_VARIABLE - 	A "Guest Variable". This is a runtime-only
+// 								value; it is never stored persistently.
+// 								This is the same guest variable that is exposed
+// 								through the VMControl APIs, and is a simple way
+// 								to pass runtime values in and out of the guest.
+// 		* VM_CONFIG_RUNTIME_ONLY - 	The configuration state of the virtual
+// 									machine. This is the .vmx file that is
+//									stored on the host. You can read this and
+// 									it will return the persistent data. If you
+// 									write to this, it will only be a runtime
+//									change, so changes will be lost when the VM
+//									powers off.
+// 		* GUEST_ENVIRONMENT_VARIABLE - 	An environment variable in the guest of
+//										the VM. On a Windows NT series guest,
+//										writing these values is saved
+//										persistently so they are immediately
+//										visible to every process.
+//										On a Linux or Windows 9X guest, writing
+//										these values is not persistent so they
+//										are only visible to the VMware tools
+//										process.
 //
 // name: The name of the variable.
 //
 // Remarks:
-// * You must call VM.LoginInGuest() before calling this function to read a GUEST_ENVIRONMENT_VARIABLE value.
-//   You do not have to call VM.LoginInGuest() to use this function to read a VM_GUEST_VARIABLE or a VVM_CONFIG_RUNTIME_ONLY value.
+// * You must call VM.LoginInGuest() before calling this function to read a
+//   GUEST_ENVIRONMENT_VARIABLE value.
+//   You do not have to call VM.LoginInGuest() to use this function to read a
+//   VM_GUEST_VARIABLE or a VVM_CONFIG_RUNTIME_ONLY value.
 //
 // Since Workstation 6.0
 func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
@@ -1732,33 +1777,45 @@ func (v *VM) UpgradeVHardware() error {
 //
 // * username: The name of a user account on the guest operating system.
 // * password: The password of the account identified by username
-// * options: Must be LOGIN_IN_GUEST_NONE or LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT - directs guest commands invoked after the call to
-// VM.LoginInGuest() to be run from within the session of the user who is interactively logged into the guest operating system.
-// See the remarks below for more information about LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT.
+// * options: Must be LOGIN_IN_GUEST_NONE or
+//            LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT - directs guest
+//            commands invoked after the call to
+// VM.LoginInGuest() to be run from within the session of the user who is
+// interactively logged into the guest operating system.
+// See the remarks below for more information about
+// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT.
 //
 // Remarks:
 //
 // This function validates the account name and password in the guest OS.
-// You must call this function before calling functions that perform operations on the guest OS,
-// such as those below. Otherwise you do not need to call this function.
-// Logins are supported on Linux and Windows. To log in as a Windows Domain user, specify the 'username'
-// parameter in the form "domain\username".
-// This function does not respect access permissions on Windows 95, Windows 98, and Windows ME,
-// due to limitations of the permissions model in those systems.
-// Other guest operating systems are not supported for login, including Solaris, FreeBSD, and Netware.
-// The option LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT should be used to ensure that the functions Guest.CaptureScreenImage(),
-// and Guest.RunProgramInGuest() work correctly.
+// You must call this function before calling functions that perform operations
+// on the guest OS, such as those below. Otherwise you do not need to call this
+// function.
+// Logins are supported on Linux and Windows. To log in as a Windows Domain
+// user, specify the 'username' parameter in the form "domain\username".
+// This function does not respect access permissions on Windows 95, Windows 98,
+// and Windows ME, due to limitations of the permissions model in those systems.
+// Other guest operating systems are not supported for login, including Solaris,
+// FreeBSD, and Netware.
+// The option LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT should be used to
+// ensure that the functions Guest.CaptureScreenImage(), and
+// Guest.RunProgramInGuest() work correctly.
 //
-// All guest operations for a particular VM are done using the identity you provide to VM.LoginInGuest().
-// As a result, guest operations are restricted by file system privileges in the guest OS that apply to the
-// user specified in VM.LoginInGuest(). For example, Guest.RmDir() might fail if the user named in VM.LoginInGuest()
-// does not have access permissions to the directory in the guest OS.
+// All guest operations for a particular VM are done using the identity you
+// provide to VM.LoginInGuest().
+// As a result, guest operations are restricted by file system privileges in the
+// guest OS that apply to the user specified in VM.LoginInGuest(). For example,
+// Guest.RmDir() might fail if the user named in VM.LoginInGuest() does not have
+// access permissions to the directory in the guest OS.
 // VM.LoginInGuest() changes the behavior of Vix functions to use a user account.
-// It does not log a user into a console session on the guest OS. As a result, you might not see
-// the user logged in from within the guest OS. Moreover, operations such as rebooting the guest do not clear the guest credentials.
+// It does not log a user into a console session on the guest OS. As a result,
+// you might not see
+// the user logged in from within the guest OS. Moreover, operations such as
+// rebooting the guest do not clear the guest credentials.
 //
 // The virtual machine must be powered on before calling this function.
-// VMware Tools must be installed and running on the guest OS before calling this function.
+// VMware Tools must be installed and running on the guest OS before calling
+// this function.
 // You can call VM.WaitForToolsInGuest() to wait for the tools to run.
 // Once VM.LoginInGuest() has succeeded, the user session remains valid until
 // Guest.Logout() is called successfully,
@@ -1766,23 +1823,33 @@ func (v *VM) UpgradeVHardware() error {
 // the virtual machine handle's reference count reaches 0, or
 // the client applications exits.
 // The special login type VIX_CONSOLE_USER_NAME is no longer supported.
-// Calling VM.LoginInGuest() with LOGIN_IN_GUEST_NONE as 'options' can be done at any time when the VMware Tools are running in the guest.
-// Calling VM.LoginInGuest() with the LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag can only be done when there
-// is an interactive user logged into the guest OS. Specifically, the "interactive user" refers to the user who has
-// logged into the guest OS through the console (for instance, the user who logged into the Windows log-in screen).
-// The VIX user is the user whose credentials are being provided in the call to VM.LoginInGuest().
+// Calling VM.LoginInGuest() with LOGIN_IN_GUEST_NONE as 'options' can be done
+// at any time when the VMware Tools are running in the guest.
+// Calling VM.LoginInGuest() with the
+// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag can only be done when
+// there is an interactive user logged into the guest OS. Specifically,
+// the "interactive user" refers to the user who has logged into the guest OS
+// through the console (for instance, the user who logged into the Windows
+// log-in screen).
+// The VIX user is the user whose credentials are being provided in the call to
+// VM.LoginInGuest().
 //
-// With LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, there must be an interactive user logged into
-// the guest when the call to VM.LoginInGuest() is made, and the VIX user must match the interactive
-// user (they must have same account in the guest OS).
+// With LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, there must be an
+// interactive user logged into the guest when the call to VM.LoginInGuest()
+// is made, and the VIX user must match the interactive user (they must have
+// same account in the guest OS).
 //
-// Using LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that the environment in which guest commands are executed
-// is as close as possible to the normal environment in which a user interacts with the guest OS.
-// Without LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, commands may be run in a more limited environment;
-// however, omitting LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that commands can be run
-// regardless of whether an interactive user is present in the guest.
+// Using LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that the
+// environment in which guest commands are executed is as close as possible to
+// the normal environment in which a user interacts with the guest OS. Without
+// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, commands may be run in a more
+// limited environment; however, omitting
+// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that commands can
+// be run regardless of whether an interactive user is present in the guest.
 //
-// On Linux guest operating systems, the LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag requires that X11 be installed and running.
+// On Linux guest operating systems, the
+// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag requires that X11 be
+// installed and running.
 //
 // Since VMware Server 1.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -1881,7 +1948,8 @@ type Guest struct {
 // Parameters:
 //
 // guestpath: The path name of a file on a file system available to the guest.
-// hostpath: The path name of a file on a file system available to the Vix client.
+// hostpath: The path name of a file on a file system available to the Vix
+//           client.
 //
 func (g *Guest) CopyFileToHost(guestpath, hostpath string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -2050,7 +2118,8 @@ func (g *Guest) RmFile(filepath string) error {
 	return nil
 }
 
-// This function tests the existence of a directory in the guest operating system.
+// This function tests the existence of a directory in the guest operating
+// system.
 //
 // Parameters:
 //
