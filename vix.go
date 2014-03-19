@@ -81,6 +81,19 @@ VixError runProgramResult(
 		exitCode,
 		VIX_PROPERTY_NONE);
 }
+
+VixError getSharedFolder(
+	VixHandle jobHandle,
+	char* folderName,
+	char* folderHostPath,
+	int* folderFlags) {
+
+	return VixJob_Wait(jobHandle,
+    	VIX_PROPERTY_JOB_RESULT_ITEM_NAME, folderName,
+        VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_HOST, folderHostPath,
+        VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_FLAGS, folderFlags,
+		VIX_PROPERTY_NONE);
+}
 */
 import "C"
 
@@ -1259,10 +1272,97 @@ func (v *VM) RootSnapshot(index int) (*Snapshot, error) {
 	return &Snapshot{handle: snapshotHandle}, nil
 }
 
-//VixVM_GetSharedFolderState
-//VixVM_SetSharedFolderState
-func (v *VM) SharedFolderState() {
+// This function modifies the state of a shared folder mounted in the virtual
+// machine.
+//
+// Parameters:
+//
+// name: Specifies the name of the shared folder.
+// hostpath: Specifies the host path of the shared folder.
+// options: The new flag settings.
+//
+// Remarks:
+//
+// * This function modifies the state flags of an existing shared folder.
+// * If the shared folder does not exist before calling
+//   this function, the function will return a not found error.
+// * Shared folders are not supported for the following guest operating
+//   systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+// * In this release, this function requires the virtual machine to be powered
+//   on with VMware Tools installed.
+//
+// Since VMware Workstation 6.0
+func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOption) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_SetSharedFolderState(v.handle, //vmHandle
+		C.CString(name),                      //shareName
+		C.CString(hostpath),                  //hostPathName
+		C.VixMsgSharedFolderOptions(options), //flags
+		nil, //callbackProc
+		nil) //clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	C.Vix_ReleaseHandle(v.handle)
+	return nil
+}
+
+// This function returns the state of a shared folder mounted in the virtual
+// machine.
+//
+// Parameters:
+//
+// index: Identifies the shared folder
+//
+// Remarks:
+//
+// * Shared folders are indexed from 0 to n-1, where n is the number of shared
+//   folders. Use the function VM.NumSharedFolders() to get the value of n.
+// * Shared folders are not supported for the following guest operating systems:
+//   Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+// * In this release, this function requires the virtual machine to be powered
+//   on with VMware Tools installed.
+//
+// Since VMware Workstation 6.0
+func (v *VM) GetSharedFolderState(index int) (string, string, int, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var folderName *C.char
+	var folderHostPath *C.char
+	var folderFlags *C.int
+
+	jobHandle = C.VixVM_GetSharedFolderState(v.handle, //vmHandle
+		C.int(index), //index
+		nil,          //callbackProc
+		nil)          //clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.getSharedFolder(jobHandle, folderName, folderHostPath, folderFlags)
+	defer C.Vix_FreeBuffer(unsafe.Pointer(folderName))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(folderHostPath))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(folderFlags))
+
+	if C.VIX_OK != err {
+		return "", "", 0, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	C.Vix_ReleaseHandle(v.handle)
+	return C.GoString(folderName), C.GoString(folderHostPath), int(*folderFlags),
+		nil
 }
 
 // This function pauses a virtual machine. See Remarks section for pause
