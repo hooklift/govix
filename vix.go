@@ -290,6 +290,13 @@ const (
 	INSTALLTOOLS_RETURN_IMMEDIATELY    InstallToolsOption = C.VIX_INSTALLTOOLS_RETURN_IMMEDIATELY
 )
 
+type RemoveSnapshotOption int
+
+const (
+	SNAPSHOT_REMOVE_NONE     RemoveSnapshotOption = 0x0
+	SNAPSHOT_REMOVE_CHILDREN RemoveSnapshotOption = C.VIX_SNAPSHOT_REMOVE_CHILDREN
+)
+
 type Host struct {
 	handle C.VixHandle
 }
@@ -2804,8 +2811,52 @@ func (s *Snapshot) Parent() (*Snapshot, error) {
 	return snapshot, nil
 }
 
-func (s *Snapshot) Remove() {
+// This function deletes all saved states for the snapshot.
+//
+// Parameters:
+//
+// * snapshot: A Snapshot instance. Call VM.RootSnapshot() to get a snapshot
+//             instance.
+//
+// Remarks:
+//
+// * This function deletes all saved states for the specified snapshot. If the
+//   snapshot was based on another snapshot, the base snapshot becomes the new
+//   root snapshot.
+// * The VMware Server release of the VIX API can manage only a single snapshot
+//   for each virtual machine. A virtual machine imported from another VMware
+//   product can have more than one snapshot at the time it is imported. In that
+//   case, you can delete only a snapshot subsequently added using the VIX API.
+// * Starting in VMware Workstation 6.5, snapshot operations are allowed on
+//   virtual machines that are part of a team. Previously, this operation
+//   failed with error code VIX_PROPERTY_VM_IN_VMTEAM. Team members snapshot
+//   independently so they can have different and inconsistent snapshot states.
+// * This function is not supported when using the VMWARE_PLAYER provider
+// * If the virtual machine is open and powered off in the UI, this function may
+//   close the virtual machine in the UI before deleting the snapshot.
+//
+// Since VMware Server 1.0
+func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) error {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixVM_RemoveSnapshot(v.handle, //vmHandle
+		snapshot.handle,                     //snapshotHandle
+		C.VixRemoveSnapshotOptions(options), //options
+		nil, //callbackProc
+		nil) //clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil
 }
 
 type VixError struct {
