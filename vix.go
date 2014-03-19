@@ -442,6 +442,22 @@ func cleanupHost(host *Host) {
 	}
 }
 
+// Private function to clean up vm handle
+func cleanupVM(v *VM) {
+	if v.handle != C.VIX_INVALID_HANDLE {
+		C.Vix_ReleaseHandle(v.handle)
+		v.handle = C.VIX_INVALID_HANDLE
+	}
+}
+
+// Private function to clean up snapshot handle
+func cleanupSnapshot(s *Snapshot) {
+	if s.handle != C.VIX_INVALID_HANDLE {
+		C.Vix_ReleaseHandle(s.handle)
+		s.handle = C.VIX_INVALID_HANDLE
+	}
+}
+
 // Destroys the state for a particular host instance
 //
 // Call this function to disconnect the host.
@@ -535,6 +551,8 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 	vm := &VM{
 		handle: vmHandle,
 	}
+
+	runtime.SetFinalizer(vm, cleanupVM)
 
 	return vm, nil
 }
@@ -989,6 +1007,8 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 		handle: clonedHandle,
 	}
 
+	runtime.SetFinalizer(vm, cleanupVM)
+
 	return vm, nil
 }
 
@@ -1066,6 +1086,8 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 		Description: description,
 	}
 
+	runtime.SetFinalizer(snapshot, cleanupSnapshot)
+
 	return snapshot, nil
 }
 
@@ -1137,7 +1159,11 @@ func (v *VM) CurrentSnapshot() (*Snapshot, error) {
 		}
 	}
 
-	return &Snapshot{handle: snapshotHandle}, nil
+	snapshot := &Snapshot{handle: snapshotHandle}
+
+	runtime.SetFinalizer(snapshot, cleanupSnapshot)
+
+	return snapshot, nil
 }
 
 // This function returns a Snapshot object matching the given name
@@ -1173,7 +1199,11 @@ func (v *VM) SnapshotByName(name string) (*Snapshot, error) {
 		}
 	}
 
-	return &Snapshot{handle: snapshotHandle}, nil
+	snapshot := &Snapshot{handle: snapshotHandle}
+
+	runtime.SetFinalizer(snapshot, cleanupSnapshot)
+
+	return snapshot, nil
 }
 
 // This function returns the number of top-level (root) snapshots belonging to a
@@ -1276,7 +1306,11 @@ func (v *VM) RootSnapshot(index int) (*Snapshot, error) {
 		}
 	}
 
-	return &Snapshot{handle: snapshotHandle}, nil
+	snapshot := &Snapshot{handle: snapshotHandle}
+
+	runtime.SetFinalizer(snapshot, cleanupSnapshot)
+
+	return snapshot, nil
 }
 
 // This function modifies the state of a shared folder mounted in the virtual
@@ -2757,6 +2791,8 @@ func (s *Snapshot) Child(index int) (*Snapshot, error) {
 		handle: snapshotHandle,
 	}
 
+	runtime.SetFinalizer(snapshot, cleanupSnapshot)
+
 	return snapshot, nil
 }
 
@@ -2807,6 +2843,8 @@ func (s *Snapshot) Parent() (*Snapshot, error) {
 	snapshot := &Snapshot{
 		handle: snapshotHandle,
 	}
+
+	runtime.SetFinalizer(snapshot, cleanupSnapshot)
 
 	return snapshot, nil
 }
