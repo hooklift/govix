@@ -2776,8 +2776,32 @@ func (s *Snapshot) NumChildren() (int, error) {
 	return int(*numChildren), nil
 }
 
-func (s *Snapshot) Parent() {
+// This function returns the parent of a snapshot.
+//
+// Remarks:
+//
+// * This function is not supported when using the VMWARE_PLAYER provider
+//
+// Since VMware Workstation 6.0
+func (s *Snapshot) Parent() (*Snapshot, error) {
+	var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	err = C.VixSnapshot_GetParent(s.handle,
+		&snapshotHandle) //(output) A handle to the child snapshot.
+
+	if C.VIX_OK != err {
+		return nil, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	snapshot := &Snapshot{
+		handle: snapshotHandle,
+	}
+
+	return snapshot, nil
 }
 
 func (s *Snapshot) Remove() {
