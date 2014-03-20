@@ -999,6 +999,7 @@ func (v *VM) Screenshot() ([]byte, error) {
 
 	err = C.getScreenshotBytes(jobHandle, &byte_count, &screen_bits)
 	defer C.Vix_FreeBuffer(unsafe.Pointer(&screen_bits))
+
 	if C.VIX_OK != err {
 		return nil, &VixError{
 			code: int(err & 0xFFFF),
@@ -1465,7 +1466,6 @@ func (v *VM) GetSharedFolderState(index int) (string, string, int, error) {
 	err = C.getSharedFolder(jobHandle, folderName, folderHostPath, folderFlags)
 	defer C.Vix_FreeBuffer(unsafe.Pointer(folderName))
 	defer C.Vix_FreeBuffer(unsafe.Pointer(folderHostPath))
-	defer C.Vix_FreeBuffer(unsafe.Pointer(folderFlags))
 
 	if C.VIX_OK != err {
 		return "", "", 0, &VixError{
@@ -2651,9 +2651,6 @@ func (g *Guest) RunProgram(path, args string, options RunProgramOption) (uint64,
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	err = C.runProgramResult(jobHandle, pid, elapsedtime, exitCode)
-	defer C.Vix_FreeBuffer(unsafe.Pointer(pid))
-	defer C.Vix_FreeBuffer(unsafe.Pointer(elapsedtime))
-	defer C.Vix_FreeBuffer(unsafe.Pointer(exitCode))
 
 	if C.VIX_OK != err {
 		return 0, 0, 0, &VixError{
@@ -2722,9 +2719,6 @@ func (g *Guest) RunScript(shell, args string, options RunProgramOption) (uint64,
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	err = C.runProgramResult(jobHandle, pid, elapsedtime, exitCode)
-	defer C.Vix_FreeBuffer(unsafe.Pointer(pid))
-	defer C.Vix_FreeBuffer(unsafe.Pointer(elapsedtime))
-	defer C.Vix_FreeBuffer(unsafe.Pointer(exitCode))
 
 	if C.VIX_OK != err {
 		return 0, 0, 0, &VixError{
