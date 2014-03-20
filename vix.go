@@ -3,6 +3,7 @@ package vix
 /*
 #cgo LDFLAGS: -L . -lvixAllProducts -ldl -lpthread
 #include "vix.h"
+#include <stdio.h>
 
 VixError getHandle(
 	VixHandle jobHandle,
@@ -93,6 +94,51 @@ VixError getSharedFolder(
         VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_HOST, folderHostPath,
         VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_FLAGS, folderFlags,
 		VIX_PROPERTY_NONE);
+}
+
+
+void findItemsResult(VixHandle jobHandle,
+                   	VixEventType eventType,
+					VixHandle moreEventInfo,
+                    void *clientData)
+{
+   VixError err = VIX_OK;
+   char *url = NULL;
+
+   // Check callback event; ignore progress reports.
+   if (VIX_EVENTTYPE_FIND_ITEM != eventType) {
+      return;
+   }
+
+   // Found a virtual machine.
+   err = Vix_GetProperties(moreEventInfo,
+                           VIX_PROPERTY_FOUND_ITEM_LOCATION,
+                           &url,
+                           VIX_PROPERTY_NONE);
+   if (VIX_OK != err) {
+      // Handle the error...
+      goto abort;
+   }
+
+   printf("\nFound virtual machine: %s", url);
+
+abort:
+   Vix_FreeBuffer(url);
+}
+
+VixError getFileInfo(VixHandle jobHandle,
+					 int64* fsize,
+					 int* flags,
+					 int64* modtime) {
+
+	return Vix_GetProperties(jobHandle,
+		                VIX_PROPERTY_JOB_RESULT_FILE_SIZE,
+                        fsize,
+                        VIX_PROPERTY_JOB_RESULT_FILE_FLAGS,
+                        flags,
+                        VIX_PROPERTY_JOB_RESULT_FILE_MOD_TIME,
+                        modtime,
+                        VIX_PROPERTY_NONE);
 }
 */
 import "C"
@@ -297,6 +343,13 @@ const (
 	SNAPSHOT_REMOVE_CHILDREN RemoveSnapshotOption = C.VIX_SNAPSHOT_REMOVE_CHILDREN
 )
 
+type FileAttr int
+
+const (
+	FILE_ATTRIBUTES_DIRECTORY FileAttr = C.VIX_FILE_ATTRIBUTES_DIRECTORY
+	FILE_ATTRIBUTES_SYMLINK   FileAttr = C.VIX_FILE_ATTRIBUTES_SYMLINK
+)
+
 type Host struct {
 	handle C.VixHandle
 }
@@ -396,7 +449,6 @@ func Connect(
 	username, password string,
 	provider, options int,
 ) (*Host, error) {
-
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var hostHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -472,8 +524,29 @@ func (h *Host) Disconnect() {
 	h.handle = C.VIX_INVALID_HANDLE
 }
 
-func (h *Host) FindItems() {
+// This function finds Vix objects. For example, when used to find all
+// running virtual machines, Host.FindItems() returns a series of virtual
+// machine file path names.
+func (h *Host) FindItems(options SearchType) ([]string, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
 
+	jobHandle = C.VixHost_FindItems(h.handle,
+		C.VixFindItemType(options), //searchType
+		C.VIX_INVALID_HANDLE,       //searchCriteria
+		-1,                         //timeout
+		nil,                        //callbackProc
+		nil)                        //clientData
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return nil, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return nil, nil
 }
 
 // This function opens a virtual machine on the host
@@ -2384,11 +2457,41 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 // Remarks:
 // * Only absolute paths should be used for files in the guest;
 //   the resolution of relative paths is not specified.
+// * The function returns the following info parameters:
+//		* size: file size as a 64-bit integer. This is 0 for directories.
+//		* flags: file attribute flags. The flags are:
+//			* FILE_ATTRIBUTES_DIRECTORY: Set if the pathname identifies a
+// 			  directory.
+//			* FILE_ATTRIBUTES_SYMLINK: Set if the pathname identifies a symbolic
+// 			  link file.
+//		* modtime:  The modification time of the file or directory as a 64-bit
+//					integer specifying seconds since the epoch.
 //
 // Since VMware Workstation 6.5
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
-func (g *Guest) FileInfo(filepath string) {
+func (g *Guest) FileInfo(filepath string) (int64, FileAttr, int64, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var fsize *C.int64
+	var flags *C.int
+	var modtime *C.int64
 
+	jobHandle = C.VixVM_GetFileInfoInGuest(g.handle,
+		C.CString(filepath), // file path name
+		nil,                 // callbackProc
+		nil)                 // clientData
+
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.getFileInfo(jobHandle, fsize, flags, modtime)
+	if C.VIX_OK != err {
+		return 0, 0, 0, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return int64(*fsize), FileAttr(*flags), int64(*modtime), nil
 }
 
 // This function terminates a process in the guest operating system.
