@@ -1,7 +1,8 @@
 package vix
 
 /*
-#cgo LDFLAGS: -L . -lvixAllProducts -ldl -lpthread
+#
+#cgo darwin LDFLAGS: -L /Users/camilo/Dropbox/Development/go/src/github.com/c4milo/govix -lvixAllProducts -ldl -lpthread
 #include "vix.h"
 #include <stdio.h>
 
@@ -97,33 +98,11 @@ VixError getSharedFolder(
 }
 
 
-void findItemsResult(VixHandle jobHandle,
-                   	VixEventType eventType,
-					VixHandle moreEventInfo,
-                    void *clientData)
-{
-   VixError err = VIX_OK;
-   char *url = NULL;
-
-   // Check callback event; ignore progress reports.
-   if (VIX_EVENTTYPE_FIND_ITEM != eventType) {
-      return;
-   }
-
-   // Found a virtual machine.
-   err = Vix_GetProperties(moreEventInfo,
-                           VIX_PROPERTY_FOUND_ITEM_LOCATION,
-                           &url,
-                           VIX_PROPERTY_NONE);
-   if (VIX_OK != err) {
-      // Handle the error...
-      goto abort;
-   }
-
-   printf("\nFound virtual machine: %s", url);
-
-abort:
-   Vix_FreeBuffer(url);
+VixError getVMUrl(char* url, VixHandle moreEvtInfo) {
+	return	Vix_GetProperties(	moreEvtInfo,
+								VIX_PROPERTY_FOUND_ITEM_LOCATION,
+								url,
+								VIX_PROPERTY_NONE);
 }
 
 VixError getFileInfo(VixHandle jobHandle,
@@ -144,9 +123,20 @@ VixError getFileInfo(VixHandle jobHandle,
 import "C"
 
 import (
+	"fmt"
+	//"os"
 	"runtime"
 	"unsafe"
 )
+
+// func init() {
+// 	fmt.Println("====> " + runtime.GOOS)
+// 	// if runtime.GOOS == "darwin" {
+// 	// 	os.Setenv("DYLD_LIBRARY_PATH", "${GOPATH}/src/github.com/c4milo/govix")
+// 	// } else if runtime.GOOS == "linux" {
+// 	// 	os.Setenv("LD_LIBRARY_PATH", "${GOPATH}/src/github.com/c4milo/govix")
+// 	// }
+// }
 
 // VixPowerState
 //
@@ -439,15 +429,15 @@ type Host struct {
 //   when connecting. To use an existing VI API session, a VI "clone ticket"
 //   is required; call the VI API AcquireCloneTicket() method of the
 //   SessionManager object to get this ticket.
-//   Using the ticket string returned by this method, call VixHost_Connect()
-//   with NULL as the 'username' and the ticket as the 'password'.
+//   Using the ticket string returned by this method, call vix.Connect()
+//   with "" as the 'username' and the ticket as the 'password'.
 //
 // Since VMware Server 1.0
 func Connect(
 	hostname string,
 	port uint,
 	username, password string,
-	provider, options int,
+	provider Provider, options HostOption,
 ) (*Host, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var hostHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -528,16 +518,59 @@ func (h *Host) Disconnect() {
 // running virtual machines, Host.FindItems() returns a series of virtual
 // machine file path names.
 func (h *Host) FindItems(options SearchType) ([]string, error) {
+	fmt.Println("Entering Host.FindItems...")
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
+	var items []string
+
+	//Initial implementation
+	//It could be slow given that
+	//for every item found there is a back and
+	//forth betweent Go and C land.
+	//
+	// IF NEEDED, we should optimize this more by
+	// filling out the slice's array directly in C
+	//
+	callback := func(
+		jhandle C.VixHandle,
+		evtType C.VixEventType,
+		moreEvtInfo C.VixHandle,
+		clientData *C.void) {
+
+		fmt.Println("YOooooo!")
+		var url *C.char
+
+		// Check callback event; ignore progress reports.
+		if C.VIX_EVENTTYPE_FIND_ITEM != evtType {
+			return
+		}
+
+		// Found an item
+		err := C.getVMUrl(url, moreEvtInfo)
+
+		if C.VIX_OK != err {
+			fmt.Printf("Error %s\n", C.Vix_GetErrorText(err, nil))
+			return
+		}
+
+		fmt.Printf("URL found -> %s\n", C.GoString(url))
+		defer C.Vix_FreeBuffer(unsafe.Pointer(url))
+
+		items = append(items, C.GoString(url))
+	}
+
+	fmt.Println("Invoking C.VixHost_FindItems...")
 
 	jobHandle = C.VixHost_FindItems(h.handle,
 		C.VixFindItemType(options), //searchType
 		C.VIX_INVALID_HANDLE,       //searchCriteria
 		-1,                         //timeout
-		nil,                        //callbackProc
-		nil)                        //clientData
+		(*C.VixEventProc)(unsafe.Pointer(&callback)), //callbackProc
+		nil) //clientData
 
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	fmt.Println("Waiting for C.VixHost_FindItems job...")
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return nil, &VixError{
@@ -545,8 +578,9 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 			text: C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
+	fmt.Println("Done.")
 
-	return nil, nil
+	return items, nil
 }
 
 // This function opens a virtual machine on the host
