@@ -2,7 +2,7 @@
 #include <string.h>
 #include "vix.h"
 
-VixError getHandle(
+VixError get_vix_handle(
 	VixHandle jobHandle,
 	VixPropertyID prop1,
 	VixHandle* handle,
@@ -14,7 +14,7 @@ VixError getHandle(
 		prop2);
 }
 
-VixError allocVmPasswordPropList(
+VixError alloc_vm_pwd_proplist(
 	VixHandle handle,
 	VixHandle* resultHandle,
 	char* password
@@ -26,7 +26,7 @@ VixError allocVmPasswordPropList(
                                         VIX_PROPERTY_NONE);
 }
 
-VixError getScreenshotBytes(
+VixError get_screenshot_bytes(
 	VixHandle handle,
 	int* byte_count,
 	char* screen_bits) {
@@ -37,35 +37,35 @@ VixError getScreenshotBytes(
 		VIX_PROPERTY_NONE);
 }
 
-VixError getNumSharedFolders(VixHandle jobHandle, int* numSharedFolders) {
+VixError get_num_shared_folders(VixHandle jobHandle, int* numSharedFolders) {
 	return VixJob_Wait(jobHandle,
 		VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_COUNT,
 		numSharedFolders,
 		VIX_PROPERTY_NONE);
 }
 
-VixError readVariable(VixHandle jobHandle, char* readValue) {
+VixError read_variable(VixHandle jobHandle, char* readValue) {
 	return VixJob_Wait(jobHandle,
 		VIX_PROPERTY_JOB_RESULT_VM_VARIABLE_STRING,
 		readValue,
 		VIX_PROPERTY_NONE);
 }
 
-VixError getTempFilePath(VixHandle jobHandle, char* tempFilePath) {
+VixError get_temp_filepath(VixHandle jobHandle, char* tempFilePath) {
 	return VixJob_Wait(jobHandle,
 		VIX_PROPERTY_JOB_RESULT_ITEM_NAME,
 		tempFilePath,
 		VIX_PROPERTY_NONE);
 }
 
-VixError isFileOrDir(VixHandle jobHandle, int* result) {
+VixError is_file_or_dir(VixHandle jobHandle, int* result) {
 	return VixJob_Wait(jobHandle,
 		VIX_PROPERTY_JOB_RESULT_GUEST_OBJECT_EXISTS,
 		result,
 		VIX_PROPERTY_NONE);
 }
 
-VixError runProgramResult(
+VixError get_program_output(
 	VixHandle jobHandle,
 	uint64* pid,
 	int* elapsedTime,
@@ -80,7 +80,7 @@ VixError runProgramResult(
 		VIX_PROPERTY_NONE);
 }
 
-VixError getSharedFolder(
+VixError get_shared_folder(
 	VixHandle jobHandle,
 	char* folderName,
 	char* folderHostPath,
@@ -94,14 +94,14 @@ VixError getSharedFolder(
 }
 
 
-VixError getVMUrl(char* url, VixHandle moreEvtInfo) {
+VixError get_vm_url(char* url, VixHandle moreEvtInfo) {
 	return	Vix_GetProperties(	moreEvtInfo,
 								VIX_PROPERTY_FOUND_ITEM_LOCATION,
 								url,
 								VIX_PROPERTY_NONE);
 }
 
-VixError getFileInfo(VixHandle jobHandle,
+VixError get_file_info(VixHandle jobHandle,
 					 int64* fsize,
 					 int* flags,
 					 int64* modtime) {

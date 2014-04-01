@@ -330,7 +330,7 @@ func Connect(
 		nil,                  // callbackProc
 		nil)                  // clientData
 
-	err = C.getHandle(jobHandle,
+	err = C.get_vix_handle(jobHandle,
 		C.VIX_PROPERTY_JOB_RESULT_HANDLE,
 		&hostHandle,
 		C.VIX_PROPERTY_NONE)
@@ -471,7 +471,7 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	if password != "" {
-		err = C.allocVmPasswordPropList(h.handle,
+		err = C.alloc_vm_pwd_proplist(h.handle,
 			&propertyHandle,
 			C.CString(password))
 
@@ -490,7 +490,7 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 		nil, // callbackProc
 		nil) // clientData
 
-	err = C.getHandle(jobHandle,
+	err = C.get_vix_handle(jobHandle,
 		C.VIX_PROPERTY_JOB_RESULT_HANDLE,
 		&vmHandle,
 		C.VIX_PROPERTY_NONE)
@@ -878,7 +878,7 @@ func (v *VM) Screenshot() ([]byte, error) {
 		nil)
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.getScreenshotBytes(jobHandle, &byte_count, &screen_bits)
+	err = C.get_screenshot_bytes(jobHandle, &byte_count, &screen_bits)
 	defer C.Vix_FreeBuffer(unsafe.Pointer(&screen_bits))
 
 	if C.VIX_OK != err {
@@ -946,7 +946,7 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.getHandle(jobHandle,
+	err = C.get_vix_handle(jobHandle,
 		C.VIX_PROPERTY_JOB_RESULT_HANDLE,
 		&clonedHandle,
 		C.VIX_PROPERTY_NONE)
@@ -1023,7 +1023,7 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 		nil,                                 // callbackProc
 		nil)                                 // clientData
 
-	err = C.getHandle(jobHandle,
+	err = C.get_vix_handle(jobHandle,
 		C.VIX_PROPERTY_JOB_RESULT_HANDLE,
 		&snapshotHandle,
 		C.VIX_PROPERTY_NONE)
@@ -1217,7 +1217,7 @@ func (v *VM) TotalSharedFolders() (int, error) {
 	jobHandle = C.VixVM_GetNumSharedFolders(v.handle, nil, nil)
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.getNumSharedFolders(jobHandle, &numSharedFolders)
+	err = C.get_num_shared_folders(jobHandle, &numSharedFolders)
 
 	if C.VIX_OK != err {
 		return 0, &VixError{
@@ -1344,7 +1344,7 @@ func (v *VM) GetSharedFolderState(index int) (string, string, int, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.getSharedFolder(jobHandle, folderName, folderHostPath, folderFlags)
+	err = C.get_shared_folder(jobHandle, folderName, folderHostPath, folderFlags)
 	defer C.Vix_FreeBuffer(unsafe.Pointer(folderName))
 	defer C.Vix_FreeBuffer(unsafe.Pointer(folderHostPath))
 
@@ -1387,7 +1387,7 @@ func (v *VM) Pause() error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	// err = C.getHandle(jobHandle,
+	// err = C.get_vix_handle(jobHandle,
 	// 	C.VIX_PROPERTY_JOB_RESULT_HANDLE,
 	// 	&snapshotHandle,
 	// 	C.VIX_PROPERTY_NONE)
@@ -1429,7 +1429,7 @@ func (v *VM) Resume() error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	// err = C.getHandle(jobHandle,
+	// err = C.get_vix_handle(jobHandle,
 	// 	C.VIX_PROPERTY_JOB_RESULT_HANDLE,
 	// 	&snapshotHandle,
 	// 	C.VIX_PROPERTY_NONE)
@@ -1703,7 +1703,7 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.readVariable(jobHandle, readValue)
+	err = C.read_variable(jobHandle, readValue)
 
 	defer C.Vix_FreeBuffer(unsafe.Pointer(readValue))
 
@@ -2161,7 +2161,7 @@ func (g *Guest) MkTemp() (string, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.getTempFilePath(jobHandle, tempFilePath)
+	err = C.get_temp_filepath(jobHandle, tempFilePath)
 	defer C.Vix_FreeBuffer(unsafe.Pointer(tempFilePath))
 
 	if C.VIX_OK != err {
@@ -2271,7 +2271,7 @@ func (g *Guest) IsDir(path string) (bool, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.isFileOrDir(jobHandle, &result)
+	err = C.is_file_or_dir(jobHandle, &result)
 	if C.VIX_OK != err {
 		return false, &VixError{
 			code: int(err & 0xFFFF),
@@ -2314,7 +2314,7 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.isFileOrDir(jobHandle, &result)
+	err = C.is_file_or_dir(jobHandle, &result)
 	if C.VIX_OK != err {
 		return false, &VixError{
 			code: int(err & 0xFFFF),
@@ -2364,7 +2364,7 @@ func (g *Guest) FileInfo(filepath string) (int64, FileAttr, int64, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.getFileInfo(jobHandle, fsize, flags, modtime)
+	err = C.get_file_info(jobHandle, fsize, flags, modtime)
 	if C.VIX_OK != err {
 		return 0, 0, 0, &VixError{
 			code: int(err & 0xFFFF),
@@ -2531,7 +2531,7 @@ func (g *Guest) RunProgram(path, args string, options RunProgramOption) (uint64,
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.runProgramResult(jobHandle, pid, elapsedtime, exitCode)
+	err = C.get_program_output(jobHandle, pid, elapsedtime, exitCode)
 
 	if C.VIX_OK != err {
 		return 0, 0, 0, &VixError{
@@ -2599,7 +2599,7 @@ func (g *Guest) RunScript(shell, args string, options RunProgramOption) (uint64,
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.runProgramResult(jobHandle, pid, elapsedtime, exitCode)
+	err = C.get_program_output(jobHandle, pid, elapsedtime, exitCode)
 
 	if C.VIX_OK != err {
 		return 0, 0, 0, &VixError{
