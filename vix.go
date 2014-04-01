@@ -1,142 +1,18 @@
 package vix
 
 /*
-#
 #cgo darwin LDFLAGS: -L /Users/camilo/Dropbox/Development/go/src/github.com/c4milo/govix -lvixAllProducts -ldl -lpthread
 #include "vix.h"
-#include <stdio.h>
-
-VixError getHandle(
-	VixHandle jobHandle,
-	VixPropertyID prop1,
-	VixHandle* handle,
-	VixPropertyID prop2) {
-
-	return VixJob_Wait(jobHandle,
-		prop1,
-		handle,
-		prop2);
-}
-
-VixError allocVmPasswordPropList(
-	VixHandle handle,
-	VixHandle* resultHandle,
-	char* password
-) {
-	return VixPropertyList_AllocPropertyList(handle,
-                                        resultHandle,
-                                        VIX_PROPERTY_VM_ENCRYPTION_PASSWORD,
-                                        password,
-                                        VIX_PROPERTY_NONE);
-}
-
-VixError getScreenshotBytes(
-	VixHandle handle,
-	int* byte_count,
-	char* screen_bits) {
-
-	return VixJob_Wait(handle,
-		VIX_PROPERTY_JOB_RESULT_SCREEN_IMAGE_DATA,
-		byte_count, screen_bits,
-		VIX_PROPERTY_NONE);
-}
-
-VixError getNumSharedFolders(VixHandle jobHandle, int* numSharedFolders) {
-	return VixJob_Wait(jobHandle,
-		VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_COUNT,
-		numSharedFolders,
-		VIX_PROPERTY_NONE);
-}
-
-VixError readVariable(VixHandle jobHandle, char* readValue) {
-	return VixJob_Wait(jobHandle,
-		VIX_PROPERTY_JOB_RESULT_VM_VARIABLE_STRING,
-		readValue,
-		VIX_PROPERTY_NONE);
-}
-
-VixError getTempFilePath(VixHandle jobHandle, char* tempFilePath) {
-	return VixJob_Wait(jobHandle,
-		VIX_PROPERTY_JOB_RESULT_ITEM_NAME,
-		tempFilePath,
-		VIX_PROPERTY_NONE);
-}
-
-VixError isFileOrDir(VixHandle jobHandle, int* result) {
-	return VixJob_Wait(jobHandle,
-		VIX_PROPERTY_JOB_RESULT_GUEST_OBJECT_EXISTS,
-		result,
-		VIX_PROPERTY_NONE);
-}
-
-VixError runProgramResult(
-	VixHandle jobHandle,
-	uint64* pid,
-	int* elapsedTime,
-	int* exitCode) {
-	return VixJob_Wait(jobHandle,
-		VIX_PROPERTY_JOB_RESULT_PROCESS_ID,
-		pid,
-		VIX_PROPERTY_JOB_RESULT_GUEST_PROGRAM_ELAPSED_TIME,
-		elapsedTime,
-		VIX_PROPERTY_JOB_RESULT_GUEST_PROGRAM_EXIT_CODE,
-		exitCode,
-		VIX_PROPERTY_NONE);
-}
-
-VixError getSharedFolder(
-	VixHandle jobHandle,
-	char* folderName,
-	char* folderHostPath,
-	int* folderFlags) {
-
-	return VixJob_Wait(jobHandle,
-    	VIX_PROPERTY_JOB_RESULT_ITEM_NAME, folderName,
-        VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_HOST, folderHostPath,
-        VIX_PROPERTY_JOB_RESULT_SHARED_FOLDER_FLAGS, folderFlags,
-		VIX_PROPERTY_NONE);
-}
-
-
-VixError getVMUrl(char* url, VixHandle moreEvtInfo) {
-	return	Vix_GetProperties(	moreEvtInfo,
-								VIX_PROPERTY_FOUND_ITEM_LOCATION,
-								url,
-								VIX_PROPERTY_NONE);
-}
-
-VixError getFileInfo(VixHandle jobHandle,
-					 int64* fsize,
-					 int* flags,
-					 int64* modtime) {
-
-	return Vix_GetProperties(jobHandle,
-		                VIX_PROPERTY_JOB_RESULT_FILE_SIZE,
-                        fsize,
-                        VIX_PROPERTY_JOB_RESULT_FILE_FLAGS,
-                        flags,
-                        VIX_PROPERTY_JOB_RESULT_FILE_MOD_TIME,
-                        modtime,
-                        VIX_PROPERTY_NONE);
-}
+#include "helper.h"
 */
 import "C"
 
 import (
 	"fmt"
-	//"os"
+	"reflect"
 	"runtime"
 	"unsafe"
 )
-
-// func init() {
-// 	fmt.Println("====> " + runtime.GOOS)
-// 	// if runtime.GOOS == "darwin" {
-// 	// 	os.Setenv("DYLD_LIBRARY_PATH", "${GOPATH}/src/github.com/c4milo/govix")
-// 	// } else if runtime.GOOS == "linux" {
-// 	// 	os.Setenv("LD_LIBRARY_PATH", "${GOPATH}/src/github.com/c4milo/govix")
-// 	// }
-// }
 
 // VixPowerState
 //
@@ -517,47 +393,11 @@ func (h *Host) Disconnect() {
 // This function finds Vix objects. For example, when used to find all
 // running virtual machines, Host.FindItems() returns a series of virtual
 // machine file path names.
-func (h *Host) FindItems(options SearchType) ([]string, error) {
+func (h *Host) FindItems(options SearchType) ([]*C.char, error) {
 	fmt.Println("Entering Host.FindItems...")
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
-	var items []string
-
-	//Initial implementation
-	//It could be slow given that
-	//for every item found there is a back and
-	//forth betweent Go and C land.
-	//
-	// IF NEEDED, we should optimize this more by
-	// filling out the slice's array directly in C
-	//
-	callback := func(
-		jhandle C.VixHandle,
-		evtType C.VixEventType,
-		moreEvtInfo C.VixHandle,
-		clientData *C.void) {
-
-		fmt.Println("YOooooo!")
-		var url *C.char
-
-		// Check callback event; ignore progress reports.
-		if C.VIX_EVENTTYPE_FIND_ITEM != evtType {
-			return
-		}
-
-		// Found an item
-		err := C.getVMUrl(url, moreEvtInfo)
-
-		if C.VIX_OK != err {
-			fmt.Printf("Error %s\n", C.Vix_GetErrorText(err, nil))
-			return
-		}
-
-		fmt.Printf("URL found -> %s\n", C.GoString(url))
-		defer C.Vix_FreeBuffer(unsafe.Pointer(url))
-
-		items = append(items, C.GoString(url))
-	}
+	var items ***C.char
 
 	fmt.Println("Invoking C.VixHost_FindItems...")
 
@@ -565,8 +405,8 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 		C.VixFindItemType(options), //searchType
 		C.VIX_INVALID_HANDLE,       //searchCriteria
 		-1,                         //timeout
-		(*C.VixEventProc)(unsafe.Pointer(&callback)), //callbackProc
-		nil) //clientData
+		(*C.VixEventProc)(C.find_items_callback), //callbackProc
+		unsafe.Pointer(items))                    //clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -578,9 +418,16 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 			text: C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
+
+	var items_ []string
+	sliceHeader := (*reflect.SliceHeader)((unsafe.Pointer(&items_)))
+	sliceHeader.Cap = 10
+	sliceHeader.Len = 10
+	sliceHeader.Data = uintptr(unsafe.Pointer(items))
+
 	fmt.Println("Done.")
 
-	return items, nil
+	return items_, nil
 }
 
 // This function opens a virtual machine on the host
