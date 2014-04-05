@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "vix.h"
+#include "helper.h"
+#include "_cgo_export.h"
 
 VixError get_vix_handle(
 	VixHandle jobHandle,
@@ -120,13 +123,13 @@ void find_items_callback(
 	VixHandle jobHandle,
 	VixEventType eventType,
 	VixHandle moreEventInfo,
-	void *items)
-{
-   VixError err = VIX_OK;
-   char* url = NULL;
+	void* goCallback) {
 
-   	//Check callback event; ignore progress reports.
-   	if (VIX_EVENTTYPE_FIND_ITEM != eventType) {
+  	VixError err = VIX_OK;
+   	char* url = NULL;
+
+	//Check callback event; ignore progress reports.
+	if (VIX_EVENTTYPE_FIND_ITEM != eventType) {
    		return;
    	}
 
@@ -135,19 +138,13 @@ void find_items_callback(
                            VIX_PROPERTY_FOUND_ITEM_LOCATION,
                            &url,
                            VIX_PROPERTY_NONE);
+
    	if (VIX_OK != err) {
    		// Handle the error...
 	  	printf("Error %s\n", Vix_GetErrorText(err, NULL));
    	}
 
-   	if (items == NULL) {
-   		printf("Allocating space for items...");
-		items = (char**) malloc(sizeof(char) * 10);
-   	}
-
-   	strncpy(items, url, strlen(url));
-
+   	go_callback_char(goCallback, url);
+   		
 	Vix_FreeBuffer(url);
-	//printf("\nFound virtual machine: %s\n", items);
-   	items++;
 }

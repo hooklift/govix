@@ -38,7 +38,7 @@ void find_items_callback(
 	VixHandle jobHandle,
 	VixEventType eventType,
 	VixHandle moreEventInfo,
-	void *items);
+	void* goCallback);
 
 VixError get_num_shared_folders(VixHandle jobHandle, int* numSharedFolders);
 VixError read_variable(VixHandle jobHandle, char* readValue);

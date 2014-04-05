@@ -8,8 +8,6 @@ package vix
 import "C"
 
 import (
-	"fmt"
-	"reflect"
 	"runtime"
 	"unsafe"
 )
@@ -319,12 +317,19 @@ func Connect(
 	var hostHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	chostname := C.CString(hostname)
+	cusername := C.CString(username)
+	cpassword := C.CString(password)
+	defer C.free(unsafe.Pointer(chostname))
+	defer C.free(unsafe.Pointer(cusername))
+	defer C.free(unsafe.Pointer(cpassword))
+
 	jobHandle = C.VixHost_Connect(C.VIX_API_VERSION,
 		C.VixServiceProvider(provider),
-		C.CString(hostname),
+		chostname,
 		C.int(port),
-		C.CString(username),
-		C.CString(password),
+		cusername,
+		cpassword,
 		C.VixHostOptions(options),
 		C.VIX_INVALID_HANDLE, // propertyListHandle
 		nil,                  // callbackProc
@@ -390,27 +395,33 @@ func (h *Host) Disconnect() {
 	h.handle = C.VIX_INVALID_HANDLE
 }
 
+//export go_callback_char
+func go_callback_char(callbackPtr unsafe.Pointer, item *C.char) {
+	callback := *(*func(*C.char))(callbackPtr)
+	callback(item)
+}
+
 // This function finds Vix objects. For example, when used to find all
 // running virtual machines, Host.FindItems() returns a series of virtual
 // machine file path names.
-func (h *Host) FindItems(options SearchType) ([]*C.char, error) {
-	fmt.Println("Entering Host.FindItems...")
+func (h *Host) FindItems(options SearchType) ([]string, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
-	var items ***C.char
+	var items []string
 
-	fmt.Println("Invoking C.VixHost_FindItems...")
+	callback := func(item *C.char) {
+		items = append(items, C.GoString(item))
+	}
 
 	jobHandle = C.VixHost_FindItems(h.handle,
 		C.VixFindItemType(options), //searchType
 		C.VIX_INVALID_HANDLE,       //searchCriteria
 		-1,                         //timeout
 		(*C.VixEventProc)(C.find_items_callback), //callbackProc
-		unsafe.Pointer(items))                    //clientData
+		unsafe.Pointer(&callback))                //clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	fmt.Println("Waiting for C.VixHost_FindItems job...")
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return nil, &VixError{
@@ -419,15 +430,7 @@ func (h *Host) FindItems(options SearchType) ([]*C.char, error) {
 		}
 	}
 
-	var items_ []string
-	sliceHeader := (*reflect.SliceHeader)((unsafe.Pointer(&items_)))
-	sliceHeader.Cap = 10
-	sliceHeader.Len = 10
-	sliceHeader.Data = uintptr(unsafe.Pointer(items))
-
-	fmt.Println("Done.")
-
-	return items_, nil
+	return items, nil
 }
 
 // This function opens a virtual machine on the host
@@ -471,9 +474,12 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	if password != "" {
+		cpassword := C.CString(password)
+		defer C.free(unsafe.Pointer(cpassword))
+
 		err = C.alloc_vm_pwd_proplist(h.handle,
 			&propertyHandle,
-			C.CString(password))
+			cpassword)
 
 		if C.VIX_OK != err {
 			return nil, &VixError{
@@ -483,8 +489,11 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 		}
 	}
 
+	cVmxFile := C.CString(vmxFile)
+	defer C.free(unsafe.Pointer(cVmxFile))
+
 	jobHandle = C.VixHost_OpenVM(h.handle,
-		C.CString(vmxFile),
+		cVmxFile,
 		C.VIX_VMOPEN_NORMAL,
 		propertyHandle,
 		nil, // callbackProc
@@ -541,8 +550,11 @@ func (h *Host) RegisterVm(vmxFile string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	cVmxFile := C.CString(vmxFile)
+	defer C.free(unsafe.Pointer(cVmxFile))
+
 	jobHandle = C.VixHost_RegisterVM(h.handle,
-		C.CString(vmxFile),
+		cVmxFile,
 		nil, // callbackProc
 		nil) // clientData
 
@@ -587,8 +599,11 @@ func (h *Host) UnregisterVm(vmxFile string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	cVmxFile := C.CString(vmxFile)
+	defer C.free(unsafe.Pointer(cVmxFile))
+
 	jobHandle = C.VixHost_UnregisterVM(h.handle,
-		C.CString(vmxFile),
+		cVmxFile,
 		nil, // callbackProc
 		nil) // clientData
 
@@ -647,10 +662,15 @@ func (h *Host) CopyFileToGuest(src string, guest *Guest, dest string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	csrc := C.CString(src)
+	cdest := C.CString(dest)
+	defer C.free(unsafe.Pointer(csrc))
+	defer C.free(unsafe.Pointer(cdest))
+
 	jobHandle = C.VixVM_CopyFileFromHostToGuest(
 		guest.handle,         //VM handle
-		C.CString(src),       // src name
-		C.CString(dest),      // dest name
+		csrc,                 // src name
+		cdest,                // dest name
 		C.int(0),             // options
 		C.VIX_INVALID_HANDLE, // propertyListHandle
 		nil,                  // callbackProc
@@ -791,9 +811,14 @@ func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOptio
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	gpath := C.CString(guestpath)
+	hpath := C.CString(hostpath)
+	defer C.free(unsafe.Pointer(gpath))
+	defer C.free(unsafe.Pointer(hpath))
+
 	jobHandle = C.VixVM_AddSharedFolder(v.handle,
-		C.CString(guestpath),
-		C.CString(hostpath),
+		gpath,
+		hpath,
 		C.VixMsgSharedFolderOptions(flags),
 		nil, nil)
 
@@ -836,8 +861,11 @@ func (v *VM) RemoveSharedFolder(guestpath string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	gpath := C.CString(guestpath)
+	defer C.free(unsafe.Pointer(gpath))
+
 	jobHandle = C.VixVM_RemoveSharedFolder(v.handle,
-		C.CString(guestpath),
+		gpath,
 		0,
 		nil, nil)
 
@@ -935,14 +963,17 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 	var clonedHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	dstVmxFile := C.CString(destVmxFile)
+	defer C.free(unsafe.Pointer(dstVmxFile))
+
 	jobHandle = C.VixVM_Clone(v.handle,
 		C.VIX_INVALID_HANDLE,      // snapshotHandle
 		C.VixCloneType(cloneType), // cloneType
-		C.CString(destVmxFile),    // destConfigPathName
-		0,                    //options,
-		C.VIX_INVALID_HANDLE, // propertyListHandle
-		nil,                  // callbackProc
-		nil)                  // clientData
+		dstVmxFile,                // destConfigPathName
+		0,                         //options,
+		C.VIX_INVALID_HANDLE,      // propertyListHandle
+		nil,                       // callbackProc
+		nil)                       // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -1015,9 +1046,14 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 	var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	sname := C.CString(name)
+	sdesc := C.CString(description)
+	defer C.free(unsafe.Pointer(sname))
+	defer C.free(unsafe.Pointer(sdesc))
+
 	jobHandle = C.VixVM_CreateSnapshot(v.handle,
-		C.CString(name),                     // name
-		C.CString(description),              // description
+		sname, // name
+		sdesc, // description
 		C.VixCreateSnapshotOptions(options), // options
 		C.VIX_INVALID_HANDLE,                // propertyListHandle
 		nil,                                 // callbackProc
@@ -1146,7 +1182,10 @@ func (v *VM) SnapshotByName(name string) (*Snapshot, error) {
 	var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
-	err = C.VixVM_GetNamedSnapshot(v.handle, C.CString(name), &snapshotHandle)
+	sname := C.CString(name)
+	defer C.free(unsafe.Pointer(sname))
+
+	err = C.VixVM_GetNamedSnapshot(v.handle, sname, &snapshotHandle)
 	if C.VIX_OK != err {
 		return nil, &VixError{
 			code: int(err & 0xFFFF),
@@ -1292,9 +1331,14 @@ func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOpt
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	sfname := C.CString(name)
+	hpath := C.CString(hostpath)
+	defer C.free(unsafe.Pointer(sfname))
+	defer C.free(unsafe.Pointer(hpath))
+
 	jobHandle = C.VixVM_SetSharedFolderState(v.handle, //vmHandle
-		C.CString(name),                      //shareName
-		C.CString(hostpath),                  //hostPathName
+		sfname, //shareName
+		hpath,  //hostPathName
 		C.VixMsgSharedFolderOptions(options), //flags
 		nil, //callbackProc
 		nil) //clientData
@@ -1694,9 +1738,12 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 	var err C.VixError = C.VIX_OK
 	var readValue *C.char
 
+	vname := C.CString(name)
+	defer C.free(unsafe.Pointer(vname))
+
 	jobHandle = C.VixVM_ReadVariable(v.handle,
 		C.int(varType),
-		C.CString(name),
+		vname,
 		0,   // options
 		nil, // callbackProc
 		nil) // clientData
@@ -1776,10 +1823,15 @@ func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	vname := C.CString(name)
+	vvalue := C.CString(value)
+	defer C.free(unsafe.Pointer(vname))
+	defer C.free(unsafe.Pointer(vvalue))
+
 	jobHandle = C.VixVM_WriteVariable(v.handle,
 		C.int(varType),
-		C.CString(name),
-		C.CString(value),
+		vname,
+		vvalue,
 		0,
 		nil, // callbackProc
 		nil) // clientData
@@ -1984,12 +2036,17 @@ func (v *VM) LoginInGuest(username, password string, options GuestLoginOption) (
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	u := C.CString(username)
+	p := C.CString(password)
+	defer C.free(unsafe.Pointer(u))
+	defer C.free(unsafe.Pointer(p))
+
 	jobHandle = C.VixVM_LoginInGuest(v.handle,
-		C.CString(username), // username
-		C.CString(password), // password
-		C.int(options),      // options
-		nil,                 // callbackProc
-		nil)                 // clientData
+		u,              // username
+		p,              // password
+		C.int(options), // options
+		nil,            // callbackProc
+		nil)            // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -2082,9 +2139,14 @@ func (g *Guest) CopyFileToHost(guestpath, hostpath string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	gpath := C.CString(guestpath)
+	hpath := C.CString(hostpath)
+	defer C.free(unsafe.Pointer(gpath))
+	defer C.free(unsafe.Pointer(hpath))
+
 	jobHandle = C.VixVM_CopyFileFromGuestToHost(g.handle,
-		C.CString(guestpath), // src name
-		C.CString(hostpath),  // dest name
+		gpath,                // src name
+		hpath,                // dest name
 		0,                    // options
 		C.VIX_INVALID_HANDLE, // propertyListHandle
 		nil,                  // callbackProc
@@ -2124,8 +2186,11 @@ func (g *Guest) MkDir(path string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	cpath := C.CString(path)
+	defer C.free(unsafe.Pointer(cpath))
+
 	jobHandle = C.VixVM_CreateDirectoryInGuest(g.handle,
-		C.CString(path),      // path name
+		cpath,                // path name
 		C.VIX_INVALID_HANDLE, // propertyListHandle
 		nil,                  // callbackProc
 		nil)                  // clientData
@@ -2192,11 +2257,14 @@ func (g *Guest) RmDir(path string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	cpath := C.CString(path)
+	defer C.free(unsafe.Pointer(cpath))
+
 	jobHandle = C.VixVM_DeleteDirectoryInGuest(g.handle,
-		C.CString(path), // path name
-		0,               // options
-		nil,             // callbackProc
-		nil)             // clientData
+		cpath, // path name
+		0,     // options
+		nil,   // callbackProc
+		nil)   // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -2227,10 +2295,13 @@ func (g *Guest) RmFile(filepath string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	fpath := C.CString(filepath)
+	defer C.free(unsafe.Pointer(fpath))
+
 	jobHandle = C.VixVM_DeleteFileInGuest(g.handle,
-		C.CString(filepath), // file path name
-		nil,                 // callbackProc
-		nil)                 // clientData
+		fpath, // file path name
+		nil,   // callbackProc
+		nil)   // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -2264,10 +2335,13 @@ func (g *Guest) IsDir(path string) (bool, error) {
 	var err C.VixError = C.VIX_OK
 	var result C.int
 
+	cpath := C.CString(path)
+	defer C.free(unsafe.Pointer(cpath))
+
 	jobHandle = C.VixVM_DirectoryExistsInGuest(g.handle,
-		C.CString(path), // dir path name
-		nil,             // callbackProc
-		nil)             // clientData
+		cpath, // dir path name
+		nil,   // callbackProc
+		nil)   // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -2307,10 +2381,13 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 	var err C.VixError = C.VIX_OK
 	var result C.int
 
+	fpath := C.CString(filepath)
+	defer C.free(unsafe.Pointer(fpath))
+
 	jobHandle = C.VixVM_FileExistsInGuest(g.handle,
-		C.CString(filepath), // dir path name
-		nil,                 // callbackProc
-		nil)                 // clientData
+		fpath, // dir path name
+		nil,   // callbackProc
+		nil)   // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -2357,10 +2434,13 @@ func (g *Guest) FileInfo(filepath string) (int64, FileAttr, int64, error) {
 	var flags *C.int
 	var modtime *C.int64
 
+	fpath := C.CString(filepath)
+	defer C.free(unsafe.Pointer(fpath))
+
 	jobHandle = C.VixVM_GetFileInfoInGuest(g.handle,
-		C.CString(filepath), // file path name
-		nil,                 // callbackProc
-		nil)                 // clientData
+		fpath, // file path name
+		nil,   // callbackProc
+		nil)   // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
@@ -2521,9 +2601,14 @@ func (g *Guest) RunProgram(path, args string, options RunProgramOption) (uint64,
 	var elapsedtime *C.int
 	var exitCode *C.int
 
+	cpath := C.CString(path)
+	cargs := C.CString(args)
+	defer C.free(unsafe.Pointer(cpath))
+	defer C.free(unsafe.Pointer(cargs))
+
 	jobHandle = C.VixVM_RunProgramInGuest(g.handle,
-		C.CString(path),                 //guestProgramName
-		C.CString(args),                 //commandLineArgs
+		cpath, //guestProgramName
+		cargs, //commandLineArgs
 		C.VixRunProgramOptions(options), //options
 		C.VIX_INVALID_HANDLE,            //propertyListHandle
 		nil,                             // callbackProc
@@ -2589,9 +2674,14 @@ func (g *Guest) RunScript(shell, args string, options RunProgramOption) (uint64,
 	var elapsedtime *C.int
 	var exitCode *C.int
 
+	cshell := C.CString(shell)
+	cargs := C.CString(args)
+	defer C.free(unsafe.Pointer(cshell))
+	defer C.free(unsafe.Pointer(cargs))
+
 	jobHandle = C.VixVM_RunProgramInGuest(g.handle,
-		C.CString(shell),                //guestProgramName
-		C.CString(args),                 //commandLineArgs
+		cshell, //guestProgramName
+		cargs,  //commandLineArgs
 		C.VixRunProgramOptions(options), //options
 		C.VIX_INVALID_HANDLE,            //propertyListHandle
 		nil,                             // callbackProc
@@ -2702,9 +2792,14 @@ func (g *Guest) Mv(path1, path2 string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
+	cpath1 := C.CString(path1)
+	cpath2 := C.CString(path2)
+	defer C.free(unsafe.Pointer(cpath1))
+	defer C.free(unsafe.Pointer(cpath2))
+
 	jobHandle = C.VixVM_RenameFileInGuest(g.handle,
-		C.CString(path1),     //oldName
-		C.CString(path2),     //newName
+		cpath1,               //oldName
+		cpath2,               //newName
 		0,                    //options
 		C.VIX_INVALID_HANDLE, //propertyListHandle
 		nil,                  //callbackProc
