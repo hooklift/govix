@@ -1420,6 +1420,10 @@ func (v *VM) GetSharedFolderState(index int) (string, string, int, error) {
 // Since VMware Workstation 6.5.
 func (v *VM) Pause() error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	//Commented code is here to have implementation clues
+	//about how to return the resulting
+	//snapshot object of the pause operation, if needed.
+	//
 	//var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
@@ -2415,7 +2419,7 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 // Remarks:
 // * Only absolute paths should be used for files in the guest;
 //   the resolution of relative paths is not specified.
-// * The function returns the following info parameters:
+// * The function returns the following info parameters as a GuestFile object:
 //		* size: file size as a 64-bit integer. This is 0 for directories.
 //		* flags: file attribute flags. The flags are:
 //			* FILE_ATTRIBUTES_DIRECTORY: Set if the pathname identifies a
@@ -2427,7 +2431,7 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 //
 // Since VMware Workstation 6.5
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
-func (g *Guest) FileInfo(filepath string) (int64, FileAttr, int64, error) {
+func (g *Guest) FileInfo(filepath string) (*GuestFile, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 	var fsize *C.int64
@@ -2446,13 +2450,18 @@ func (g *Guest) FileInfo(filepath string) (int64, FileAttr, int64, error) {
 
 	err = C.get_file_info(jobHandle, fsize, flags, modtime)
 	if C.VIX_OK != err {
-		return 0, 0, 0, &VixError{
+		return nil, &VixError{
 			code: int(err & 0xFFFF),
 			text: C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
-	return int64(*fsize), FileAttr(*flags), int64(*modtime), nil
+	return &GuestFile{
+		Path:    filepath,
+		Size:    int64(*fsize),
+		Attrs:   FileAttr(*flags),
+		Modtime: int64(*modtime),
+	}, nil
 }
 
 // This function terminates a process in the guest operating system.
@@ -2494,14 +2503,155 @@ func (g *Guest) Kill(pid uint64) error {
 	return nil
 }
 
-//VixVM_ListDirectoryInGuest
-func (g *Guest) Ls() {
-
+type GuestFile struct {
+	Path    string
+	Size    int64
+	Modtime int64
+	Attrs   FileAttr
 }
 
-//VixVM_ListProcessesInGuest
-func (g *Guest) Ps() {
+// This function lists a directory in the guest
+// operating system.
+//
+// Parameters:
+//
+// dir: The path name of a directory to be listed.
+//
+// Remarks:
+//
+// * Only absolute paths should be used for files in the guest; the resolution
+//   of relative paths is not specified.
+//
+// Since VMware Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) Ls(dir string) ([]*GuestFile, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var files []*GuestFile
 
+	guestdir := C.CString(dir)
+	defer C.free(unsafe.Pointer(guestdir))
+
+	jobHandle = C.VixVM_ListDirectoryInGuest(g.handle, guestdir, 0, nil, nil)
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return nil, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	num := C.VixJob_GetNumProperties(jobHandle, C.VIX_PROPERTY_JOB_RESULT_ITEM_NAME)
+	for i := 0; i < int(num); i++ {
+		var name *C.char
+		var size *C.int64
+		var modtime *C.int64
+		var attrs *C.int
+
+		gfile := &GuestFile{}
+
+		err = C.get_guest_file(jobHandle, C.int(i), name, size, modtime, attrs)
+		if C.VIX_OK != err {
+			return nil, &VixError{
+				code: int(err & 0xFFFF),
+				text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			}
+		}
+
+		gfile.Path = C.GoString(name)
+		C.Vix_FreeBuffer(unsafe.Pointer(name))
+
+		gfile.Size = int64(*size)
+		gfile.Modtime = int64(*modtime)
+		gfile.Attrs = FileAttr(*attrs)
+
+		files = append(files, gfile)
+	}
+
+	return files, nil
+}
+
+type GuestProcess struct {
+	Name       string
+	Pid        uint64
+	Owner      string
+	Cmdline    string
+	IsDebugged bool
+	StartTime  int
+}
+
+// This function lists the running processes in the guest
+// operating system.
+//
+// Since Workstation 6.0
+// Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+func (g *Guest) Ps() ([]*GuestProcess, error) {
+	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	var err C.VixError = C.VIX_OK
+	var processes []*GuestProcess
+
+	jobHandle = C.VixVM_ListProcessesInGuest(g.handle, 0, nil, nil)
+	defer C.Vix_ReleaseHandle(jobHandle)
+
+	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	if C.VIX_OK != err {
+		return nil, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	num := C.VixJob_GetNumProperties(jobHandle, C.VIX_PROPERTY_JOB_RESULT_ITEM_NAME)
+	for i := 0; i < int(num); i++ {
+		var name *C.char
+		var pid *C.uint64
+		var owner *C.char
+		var cmdline *C.char
+		var isDebugged *C.Bool
+		var startTime *C.int
+
+		gprocess := &GuestProcess{}
+
+		err = C.get_guest_process(jobHandle, C.int(i),
+			name,
+			pid,
+			owner,
+			cmdline,
+			isDebugged,
+			startTime)
+
+		if C.VIX_OK != err {
+			return nil, &VixError{
+				code: int(err & 0xFFFF),
+				text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			}
+		}
+
+		gprocess.Name = C.GoString(name)
+		C.Vix_FreeBuffer(unsafe.Pointer(name))
+
+		gprocess.Pid = uint64(*pid)
+
+		gprocess.Owner = C.GoString(owner)
+		C.Vix_FreeBuffer(unsafe.Pointer(owner))
+
+		gprocess.Cmdline = C.GoString(cmdline)
+		C.Vix_FreeBuffer(unsafe.Pointer(cmdline))
+
+		if *isDebugged == 1 {
+			gprocess.IsDebugged = true
+		} else {
+			gprocess.IsDebugged = false
+		}
+
+		gprocess.StartTime = int(*startTime)
+
+		processes = append(processes, gprocess)
+	}
+
+	return processes, nil
 }
 
 // This function removes any guest operating system authentication

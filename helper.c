@@ -145,6 +145,29 @@ void find_items_callback(
    	}
 
    	go_callback_char(goCallback, url);
-   		
+
 	Vix_FreeBuffer(url);
 }
+
+VixError get_guest_file(VixHandle jobHandle, int i, char* name, int64* size, int64* modtime, int* flags) {
+	return VixJob_GetNthProperties( jobHandle,
+									i,
+									VIX_PROPERTY_JOB_RESULT_ITEM_NAME, name,
+									VIX_PROPERTY_JOB_RESULT_FILE_SIZE, size,
+                        			VIX_PROPERTY_JOB_RESULT_FILE_FLAGS, flags,
+                        			VIX_PROPERTY_JOB_RESULT_FILE_MOD_TIME, modtime,
+									VIX_PROPERTY_NONE);
+}
+
+VixError get_guest_process(VixHandle jobHandle, int i, char* name, uint64* pid, char* owner, char* cmdline, Bool* is_debugged, int* start_time) {
+	return VixJob_GetNthProperties( jobHandle,
+									i,
+									VIX_PROPERTY_JOB_RESULT_ITEM_NAME, name,
+                    				VIX_PROPERTY_JOB_RESULT_PROCESS_ID, pid,
+                     				VIX_PROPERTY_JOB_RESULT_PROCESS_OWNER, owner,
+                  					VIX_PROPERTY_JOB_RESULT_PROCESS_COMMAND, cmdline,
+		    						VIX_PROPERTY_JOB_RESULT_PROCESS_BEING_DEBUGGED, is_debugged,
+		     						VIX_PROPERTY_JOB_RESULT_PROCESS_START_TIME, start_time,
+                     				VIX_PROPERTY_NONE);
+}
+

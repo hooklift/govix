@@ -34,6 +34,22 @@ VixError get_file_info(VixHandle jobHandle,
 					 int* flags,
 					 int64* modtime);
 
+VixError get_guest_file(VixHandle jobHandle,
+						int i,
+						char* name,
+						int64* size,
+						int64* modtime,
+						int* flags);
+
+VixError get_guest_process(VixHandle jobHandle, 
+						int i,
+						char* name,
+						uint64* pid,
+						char* owner,
+						char* cmdline,
+						Bool* is_debugged,
+						int* start_time);
+
 void find_items_callback(
 	VixHandle jobHandle,
 	VixEventType eventType,
