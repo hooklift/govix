@@ -40,13 +40,13 @@ func (v *VM) Vcpus() (uint8, error) {
 // Returns path to the virtual machine configuration file.
 func (v *VM) VmxPath() (string, error) {
 	var err C.VixError = C.VIX_OK
-	var path C.char = C.VIX_PROPERTY_NONE
+	var path *C.char
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_VMX_PATHNAME,
 		unsafe.Pointer(&path))
 
-	defer C.Vix_FreeBuffer(unsafe.Pointer(&path))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(path))
 
 	if C.VIX_OK != err {
 		return "", &VixError{
@@ -55,19 +55,19 @@ func (v *VM) VmxPath() (string, error) {
 		}
 	}
 
-	return C.GoString(&path), nil
+	return C.GoString(path), nil
 }
 
 // Returns path to the virtual machine team.
 func (v *VM) VmTeamPath() (string, error) {
 	var err C.VixError = C.VIX_OK
-	var path C.char = C.VIX_PROPERTY_NONE
+	var path *C.char
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_VMTEAM_PATHNAME,
 		unsafe.Pointer(&path))
 
-	defer C.Vix_FreeBuffer(unsafe.Pointer(&path))
+	defer C.Vix_FreeBuffer(unsafe.Pointer(path))
 
 	if C.VIX_OK != err {
 		return "", &VixError{
@@ -76,7 +76,7 @@ func (v *VM) VmTeamPath() (string, error) {
 		}
 	}
 
-	return C.GoString(&path), nil
+	return C.GoString(path), nil
 }
 
 // Returns memory size of the virtual machine.
