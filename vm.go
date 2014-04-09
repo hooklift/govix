@@ -204,6 +204,48 @@ func (v *VM) IsRunning() (bool, error) {
 	}
 }
 
+// Returns the guest os
+func (v *VM) GuestOS() (string, error) {
+	var err C.VixError = C.VIX_OK
+	var os *C.char
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_GUESTOS,
+		unsafe.Pointer(&os))
+
+	defer C.Vix_FreeBuffer(unsafe.Pointer(os))
+
+	if C.VIX_OK != err {
+		return "", &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return C.GoString(os), nil
+}
+
+// Returns VM supported features
+// func (v *VM) Features() (string, error) {
+// 	var err C.VixError = C.VIX_OK
+// 	var features *C.char
+
+// 	err = C.get_property(v.handle,
+// 		C.VIX_PROPERTY_VM_SUPPORTED_FEATURES,
+// 		unsafe.Pointer(&features))
+
+// 	defer C.Vix_FreeBuffer(unsafe.Pointer(features))
+
+// 	if C.VIX_OK != err {
+// 		return "", &VixError{
+// 			code: int(err & 0xFFFF),
+// 			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+// 		}
+// 	}
+
+// 	return C.GoString(features), nil
+// }
+
 // This function enables or disables all shared folders as a feature for a
 // virtual machine.
 //
@@ -564,9 +606,7 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 	}
 
 	snapshot := &Snapshot{
-		handle:      snapshotHandle,
-		Name:        name,
-		Description: description,
+		handle: snapshotHandle,
 	}
 
 	runtime.SetFinalizer(snapshot, cleanupSnapshot)

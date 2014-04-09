@@ -9,20 +9,54 @@ import "C"
 
 import (
 	"runtime"
+	"unsafe"
 )
 
 type Snapshot struct {
 	// Internal VIX handle
 	handle C.VixHandle
+}
 
-	// User defined name for the snapshot.
-	Name string
+// Returns user defined name for the snapshot.
+func (s *Snapshot) Name() (string, error) {
+	var err C.VixError = C.VIX_OK
+	var name *C.char
 
-	// User defined description for the snapshot.
-	Description string
+	err = C.get_property(s.handle,
+		C.VIX_PROPERTY_SNAPSHOT_DISPLAYNAME,
+		unsafe.Pointer(&name))
 
-	// Whether the snapshot is replayable.
-	IsReplayable bool
+	defer C.Vix_FreeBuffer(unsafe.Pointer(name))
+
+	if C.VIX_OK != err {
+		return "", &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return C.GoString(name), nil
+}
+
+// Returns user defined description for the snapshot.
+func (s *Snapshot) Description() (string, error) {
+	var err C.VixError = C.VIX_OK
+	var desc *C.char
+
+	err = C.get_property(s.handle,
+		C.VIX_PROPERTY_SNAPSHOT_DESCRIPTION,
+		unsafe.Pointer(&desc))
+
+	defer C.Vix_FreeBuffer(unsafe.Pointer(desc))
+
+	if C.VIX_OK != err {
+		return "", &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return C.GoString(desc), nil
 }
 
 // This function returns the specified child snapshot.

@@ -12,8 +12,27 @@ import (
 )
 
 type Guest struct {
-	handle                 C.VixHandle
-	SharedFoldersParentDir string
+	handle C.VixHandle
+}
+
+func (g *Guest) SharedFoldersParentDir() (string, error) {
+	var err C.VixError = C.VIX_OK
+	var path *C.char
+
+	err = C.get_property(g.handle,
+		C.VIX_PROPERTY_GUEST_SHAREDFOLDERS_SHARES_PATH,
+		unsafe.Pointer(&path))
+
+	defer C.Vix_FreeBuffer(unsafe.Pointer(path))
+
+	if C.VIX_OK != err {
+		return "", &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return C.GoString(path), nil
 }
 
 // Copies a file or directory from the guest operating system to the local
