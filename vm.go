@@ -15,32 +15,193 @@ import (
 type VM struct {
 	// Internal VIX handle
 	handle C.VixHandle
+}
 
-	// The number of virtual CPUs configured for the virtual machine.
-	VCpus uint8
+// Returns number of virtual CPUs configured for
+// the virtual machine.
+func (v *VM) Vcpus() (uint8, error) {
+	var err C.VixError = C.VIX_OK
+	var vcpus C.int = C.VIX_PROPERTY_NONE
 
-	// The path to the virtual machine configuration file.
-	VmxPath string
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_NUM_VCPUS,
+		unsafe.Pointer(&vcpus))
 
-	// The path to the virtual machine team.
-	VmTeamPath string
+	if C.VIX_OK != err {
+		return 0, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
 
-	// The memory size of the virtual machine.
-	MemorySize uint
+	return uint8(vcpus), nil
+}
 
-	ReadOnly bool
+// Returns path to the virtual machine configuration file.
+func (v *VM) VmxPath() (string, error) {
+	var err C.VixError = C.VIX_OK
+	var path C.char = C.VIX_PROPERTY_NONE
 
-	// Whether the virtual machine is a member of a team.
-	InVMTeam bool
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_VMX_PATHNAME,
+		unsafe.Pointer(&path))
 
-	// The power state of the virtual machine.
-	PowerState VMPowerState
+	defer C.Vix_FreeBuffer(unsafe.Pointer(&path))
 
-	// The state of the VMware Tools suite in the guest.
-	ToolState GuestToolsState
+	if C.VIX_OK != err {
+		return "", &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
 
-	// Whether the virtual machine is running.
-	IsRunning bool
+	return C.GoString(&path), nil
+}
+
+// Returns path to the virtual machine team.
+func (v *VM) VmTeamPath() (string, error) {
+	var err C.VixError = C.VIX_OK
+	var path C.char = C.VIX_PROPERTY_NONE
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_VMTEAM_PATHNAME,
+		unsafe.Pointer(&path))
+
+	defer C.Vix_FreeBuffer(unsafe.Pointer(&path))
+
+	if C.VIX_OK != err {
+		return "", &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return C.GoString(&path), nil
+}
+
+// Returns memory size of the virtual machine.
+func (v *VM) MemorySize() (uint, error) {
+	var err C.VixError = C.VIX_OK
+	var memsize C.uint = C.VIX_PROPERTY_NONE
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_MEMORY_SIZE,
+		unsafe.Pointer(&memsize))
+
+	if C.VIX_OK != err {
+		return 0, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return uint(memsize), nil
+}
+
+func (v *VM) ReadOnly() (bool, error) {
+	var err C.VixError = C.VIX_OK
+	var readonly C.Bool = C.VIX_PROPERTY_NONE
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_READ_ONLY,
+		unsafe.Pointer(&readonly))
+
+	if C.VIX_OK != err {
+		return false, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	if readonly == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
+// Returns whether the virtual machine is a member of a team
+func (v *VM) InVmTeam() (bool, error) {
+	var err C.VixError = C.VIX_OK
+	var inTeam C.Bool = C.VIX_PROPERTY_NONE
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_IN_VMTEAM,
+		unsafe.Pointer(&inTeam))
+
+	if C.VIX_OK != err {
+		return false, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	if inTeam == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
+// Returns power state of the virtual machine.
+func (v *VM) PowerState() (VMPowerState, error) {
+	var err C.VixError = C.VIX_OK
+	var state C.VixPowerState = 0x0
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_POWER_STATE,
+		unsafe.Pointer(&state))
+
+	if C.VIX_OK != err {
+		return VMPowerState(0x0), &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return VMPowerState(state), nil
+}
+
+// Returns state of the VMware Tools suite in the guest.
+func (v *VM) ToolState() (GuestToolsState, error) {
+	var err C.VixError = C.VIX_OK
+	var state C.VixToolsState = C.VIX_TOOLSSTATE_UNKNOWN
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_TOOLS_STATE,
+		unsafe.Pointer(&state))
+
+	if C.VIX_OK != err {
+		return TOOLSSTATE_UNKNOWN, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	return GuestToolsState(state), nil
+}
+
+// Returns whether the virtual machine is running.
+func (v *VM) IsRunning() (bool, error) {
+	var err C.VixError = C.VIX_OK
+	var running C.Bool = C.VIX_PROPERTY_NONE
+
+	err = C.get_property(v.handle,
+		C.VIX_PROPERTY_VM_IS_RUNNING,
+		unsafe.Pointer(&running))
+
+	if C.VIX_OK != err {
+		return false, &VixError{
+			code: int(err & 0xFFFF),
+			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+		}
+	}
+
+	if running == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }
 
 // This function enables or disables all shared folders as a feature for a

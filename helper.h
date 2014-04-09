@@ -61,5 +61,6 @@ VixError read_variable(VixHandle jobHandle, char* readValue);
 VixError get_temp_filepath(VixHandle jobHandle, char* tempFilePath);
 VixError is_file_or_dir(VixHandle jobHandle, int* result);
 VixError get_vm_url(char* url, VixHandle moreEvtInfo);
+VixError get_property(VixHandle handle, VixPropertyID id, void* value);
 
 #endif

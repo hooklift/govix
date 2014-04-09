@@ -96,6 +96,9 @@ VixError get_shared_folder(
 		VIX_PROPERTY_NONE);
 }
 
+VixError get_property(VixHandle handle, VixPropertyID id, void* value) {
+	return Vix_GetProperties(handle, id, value, VIX_PROPERTY_NONE);
+}
 
 VixError get_vm_url(char* url, VixHandle moreEvtInfo) {
 	return	Vix_GetProperties(	moreEvtInfo,
