@@ -1,20 +1,43 @@
 package vix
 
 import (
+	//"io/ioutil"
 	"net"
+	//"strings"
 )
 
+// Like a physical switch, a virtual switch lets you
+// connect other networking components together.
+// Virtual switches are created as needed by the
+// VMware Workstation software, up to a total of
+// nine switches. You can connect one or more
+// virtual machines to a switch.
+//
+// By default, a few of the switches and the networks
+// associated with them are used for special
+// named configurations:
+//
+// The bridged network uses VMnet0.
+// The host-only network uses VMnet1.
+// The NAT network uses VMnet8.
+// The other available networks are simply named VMnet2, VMnet3, VMnet4, and so on.
 type VSwitch struct {
 	id string
-	// Provide addresses on this vswitch via DHCP
-	DHCP        bool
+
+	// Whether or not to provide addresses
+	// on this vswitch via DHCP
+	DHCP bool
+
+	// Address pool from which to provide IPs to
+	// virtual machines plugged to this virtual switch.
 	DCHPNetwork net.IPNet
 
-	//Connects host machine to this vswitch
+	//Connects host machine to this virtual switch
 	VirtualAdapter bool
 
-	// Allow virtual machines on this vswitch to connect
-	// to external networks using NAT
+	// Allow virtual machines on this virtual
+	// switch to connect to external
+	// networks using NAT
 	NAT bool
 }
 
@@ -31,6 +54,8 @@ func AddVSwitch(vswitch VSwitch) (string, error) {
 	return "", nil
 }
 
+// answer VNET_10_DHCP no
+// answer VNET_10_VIRTUAL_ADAPTER no
 //http://thornelabs.net/2013/10/18/manually-add-and-remove-vmware-fusion-virtual-adapters.html
 func RemoveVSwitch(id string) error {
 	return nil
@@ -50,7 +75,37 @@ func GetVSwitch(id string) (VSwitch, error) {
 
 // Source http://kb.vmware.com/selfservice/microsites/search.do?language=en_US&cmd=displayKC&externalId=1026510
 func restartVMNetServices() {
-	//vmnet-cli --configure
-	//vmnet-cli --stop
-	//vmnet-cli --start
+	// linux: vmware-networks –stop
+	// linux: vmware-networks –start
+	// linux: vmware-networks –status
+	// linux: /etc/init.d/vmware restart
+	//osx: vmnet-cli --stop
+	//osx: vmnet-cli --configure
+	//osx: vmnet-cli --start
+	//osx: vmnet-cli --status
+}
+
+// linux: /etc/vmware/networking
+// darwin: /Library/Preferences/VMware\ Fusion/networking
+// windows: ?
+func readNetwork(path string) (map[string]string, error) {
+	// data, err := ioutil.ReadFile(path)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	// network := make(map[string]string)
+
+	// for _, line := range strings.Split(string(data), "\n") {
+	// 	values := strings.Split(line, " ")
+	// 	if len(values) == 2 {
+	// 		vmx[strings.TrimSpace(values[0])] = strings.Trim(strings.TrimSpace(values[1]), `"`)
+	// 	}
+	// }
+
+	return nil, nil
+}
+
+func writeNetworking(path string, network map[string]string) error {
+	return nil
 }
