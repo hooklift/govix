@@ -1812,7 +1812,7 @@ func (v *VM) changeVmxSetting(name string, value string) error {
 // VM has to be powered off in order to change
 // this parameter
 func (v *VM) SetMemorySize(size uint) error {
-	memsize, _ := strconv.ItoA(size)
+	memsize := strconv.Itoa(int(size))
 	return v.changeVmxSetting("memsize", memsize)
 }
 
@@ -1821,6 +1821,6 @@ func (v *VM) SetMemorySize(size uint) error {
 // VM has to be powered off in order to change
 // this parameter
 func (v *VM) SetNumberVcpus(vcpus uint8) error {
-	numvcpus, _ := strconv.ItoA(vcpus)
+	numvcpus := strconv.Itoa(int(vcpus))
 	return v.changeVmxSetting("numvcpus", numvcpus)
 }
