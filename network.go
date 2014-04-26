@@ -402,7 +402,7 @@ func (v *VM) totalNetworkAdapters(vmx map[string]string) int {
 }
 
 // Removes network adapter from VMX file
-// Only "adapter.Id" is required to be provided.
+// Only "adapter.Id" is required.
 func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 	isVmRunning, err := v.IsRunning()
 	if err != nil {
