@@ -114,6 +114,10 @@ const (
 	// sophisticated virtual networks. The virtual networks
 	// can be connected to one or more external networks,
 	// or they may run entirely on the host computer.
+	//
+	// If you choose for adding a custom network adapter
+	// you also have to provide the virtual switch to
+	// which it is going to be attached to.
 	NETWORK_CUSTOM NetworkType = "custom"
 )
 
