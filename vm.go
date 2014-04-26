@@ -9,6 +9,7 @@ import "C"
 
 import (
 	"runtime"
+	"strconv"
 	"unsafe"
 )
 
@@ -1771,4 +1772,55 @@ func (v *VM) WaitForToolsInGuest(timeout uint) error {
 	}
 
 	return nil
+}
+
+func (v *VM) changeVmxSetting(name string, value string) error {
+	isVmRunning, err := v.IsRunning()
+	if err != nil {
+		return err
+	}
+
+	if isVmRunning {
+		return &VixError{
+			code: 100000,
+			text: "The VM has to be powered off in order to change its vmx settings",
+		}
+	}
+
+	vmxPath, err := v.VmxPath()
+	if err != nil {
+		return err
+	}
+
+	vmx, err := readVmx(vmxPath)
+	if err != nil {
+		return err
+	}
+
+	vmx[name] = value
+
+	err = writeVmx(vmxPath, vmx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Sets memory size in megabytes
+//
+// VM has to be powered off in order to change
+// this parameter
+func (v *VM) SetMemorySize(size uint) error {
+	memsize, _ := strconv.ItoA(size)
+	return v.changeVmxSetting("memsize", memsize)
+}
+
+// Sets number of virtual cpus assigned to this machine.
+//
+// VM has to be powered off in order to change
+// this parameter
+func (v *VM) SetNumberVcpus(vcpus uint8) error {
+	numvcpus, _ := strconv.ItoA(vcpus)
+	return v.changeVmxSetting("numvcpus", numvcpus)
 }

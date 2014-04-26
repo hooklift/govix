@@ -25,22 +25,25 @@ func main() {
 		panic(err)
 	}
 
-	// err = vm.AddNetworkAdapter(nil)
+	// err = vm.AddNetworkAdapter(&vix.NetworkAdapter{
+	// 	Vdevice:  vix.NETWORK_DEVICE_VMXNET3,
+	// 	ConnType: vix.NETWORK_BRIDGED,
+	// })
 	// if err != nil {
 	// 	panic(err)
 	// }
 
-	vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "7"})
-	vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "6"})
-	vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "5"})
-	vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "4"})
-	vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "3"})
-	vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "2"})
-	vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "1"})
+	// vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "7"})
+	// vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "6"})
+	// vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "5"})
+	// vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "4"})
+	// vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "3"})
+	// vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "2"})
+	// vm.RemoveNetworkAdapter(&vix.NetworkAdapter{Id: "1"})
 
 	netAdapters, err := vm.NetworkAdapters()
 	for _, adapter := range netAdapters {
-		fmt.Printf("%v\n", adapter)
+		fmt.Printf("%#v\n", adapter)
 	}
 
 	// toolState, err := vm.ToolState()
