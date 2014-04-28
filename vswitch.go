@@ -106,6 +106,6 @@ func readNetwork(path string) (map[string]string, error) {
 	return nil, nil
 }
 
-func writeNetworking(path string, network map[string]string) error {
+func writeNetwork(path string, network map[string]string) error {
 	return nil
 }
