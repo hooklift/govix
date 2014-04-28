@@ -29,7 +29,12 @@ In order for Go to find libvix when running your compiled binary, a govix path h
 Be aware that the previous example assumes $GOPATH only has a path set.
 
 Additionally, due to an [issue](https://code.google.com/p/go/issues/detail?id=5428) in Go, the CGO LDFLAGS
-directive has to have an absolute path in order for govix to compile.
+directive has to have an absolute path in order for govix to compile. In order to achieve this on your
+machine, there is a Bash script provided which will probably work:
+
+```
+sh replace-ldflags.sh
+````
 
 
 
