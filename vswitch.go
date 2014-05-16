@@ -88,7 +88,7 @@ func restartVMNetServices() {
 // linux: /etc/vmware/networking
 // darwin: /Library/Preferences/VMware\ Fusion/networking
 // windows: ?
-func readNetwork(path string) (map[string]string, error) {
+func readNetworkCfg(path string) (map[string]string, error) {
 	// data, err := ioutil.ReadFile(path)
 	// if err != nil {
 	// 	return nil, err
@@ -106,6 +106,6 @@ func readNetwork(path string) (map[string]string, error) {
 	return nil, nil
 }
 
-func writeNetwork(path string, network map[string]string) error {
+func writeNetworkCfg(path string, network map[string]string) error {
 	return nil
 }
