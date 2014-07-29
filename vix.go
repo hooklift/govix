@@ -131,7 +131,8 @@ const (
 type HostOption int
 
 const (
-	VERIFY_SSL_CERT = C.VIX_HOSTOPTION_VERIFY_SSL_CERT
+	HOST_OPTIONS_NONE = 0x0
+	VERIFY_SSL_CERT   = C.VIX_HOSTOPTION_VERIFY_SSL_CERT
 )
 
 type GuestLoginOption int
@@ -303,30 +304,33 @@ const (
 //   with "" as the 'username' and the ticket as the 'password'.
 //
 // Since VMware Server 1.0
-func Connect(
-	hostname string,
-	port uint,
-	username, password string,
-	provider Provider, options HostOption,
-) (*Host, error) {
+type ConnectConfig struct {
+	Hostname           string
+	Port               uint
+	Username, Password string
+	Provider           Provider
+	Options            HostOption
+}
+
+func Connect(config ConnectConfig) (*Host, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var hostHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
-	chostname := C.CString(hostname)
-	cusername := C.CString(username)
-	cpassword := C.CString(password)
+	chostname := C.CString(config.Hostname)
+	cusername := C.CString(config.Username)
+	cpassword := C.CString(config.Password)
 	defer C.free(unsafe.Pointer(chostname))
 	defer C.free(unsafe.Pointer(cusername))
 	defer C.free(unsafe.Pointer(cpassword))
 
 	jobHandle = C.VixHost_Connect(C.VIX_API_VERSION,
-		C.VixServiceProvider(provider),
+		C.VixServiceProvider(config.Provider),
 		chostname,
-		C.int(port),
+		C.int(config.Port),
 		cusername,
 		cpassword,
-		C.VixHostOptions(options),
+		C.VixHostOptions(config.Options),
 		C.VIX_INVALID_HANDLE, // propertyListHandle
 		nil,                  // callbackProc
 		nil)                  // clientData

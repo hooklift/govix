@@ -2,17 +2,14 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/c4milo/govix"
 )
 
 func main() {
-	host, err := vix.Connect(
-		"",
-		0,
-		"",
-		"",
-		vix.VMWARE_WORKSTATION,
-		vix.VERIFY_SSL_CERT)
+	host, err := vix.Connect(vix.ConnectConfig{
+		Provider: vix.VMWARE_WORKSTATION,
+	})
 
 	if err != nil {
 		panic(err)

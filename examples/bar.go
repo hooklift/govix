@@ -2,17 +2,14 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/c4milo/govix"
 )
 
 func main() {
-	host, err := vix.Connect(
-		"",
-		0,
-		"",
-		"",
-		vix.VMWARE_WORKSTATION,
-		vix.VERIFY_SSL_CERT)
+	host, err := vix.Connect(vix.ConnectConfig{
+		Provider: vix.VMWARE_WORKSTATION,
+	})
 
 	if err != nil {
 		panic(err)
@@ -20,7 +17,7 @@ func main() {
 
 	defer host.Disconnect()
 
-	vm, err := host.OpenVm("/Users/camilo/Dropbox/Development/cloudescape/dobby-boxes/ubuntu/output-vmware-iso/ubuntu1404.vmx", "")
+	vm, err := host.OpenVm("/Users/camilo/Documents/Virtual Machines.localized/Ubuntu 64-bit.vmwarevm/Ubuntu 64-bit.vmx", "")
 	if err != nil {
 		panic(err)
 	}
