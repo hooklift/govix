@@ -1,7 +1,6 @@
 package vix
 
 /*
-#cgo darwin LDFLAGS: -L /Users/camilo/Dropbox/Development/go/src/github.com/c4milo/govix -lvixAllProducts -ldl -lpthread
 #include "vix.h"
 #include "helper.h"
 */
