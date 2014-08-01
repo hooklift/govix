@@ -29,5 +29,25 @@ In order for Go to find libvix when running your compiled binary, a govix path h
 Be aware that the previous example assumes $GOPATH only has a path set.
 
 
+## VMware VIX EULA
+As noted in the End User License Agreement, the VIX API allows you to build and distribute your own applications. To facilitate this, the following files are designated as redistributable for the purpose of that agreement:
+
+* VixAllProducts.lib
+* VixAllProductsd.lib
+* VixAllProductsDyn.lib
+* vix.lib and vix.dll
+* vixCOM.dll
+* gvmomi-vix-1.13.1.dll
+* libvixAllProducts.so
+* libvix.so
+* libgvmomi-vix-1.13.1.so.0
+* vixwrapper-config.txt
+* manifest.txt
+* compiled perl modules resulting from building the contents of vix-perl.tar.gz or vix-perl.zip
+
+Redistribution of the open source libraries included with the VIX API is governed by their respective open source license agreements.
+
+http://blogs.vmware.com/vix/2010/05/redistibutable-vix-api-client-libraries.html
+
 ## License
 Copyright 2014 Cloudescape. All rights reserved.
