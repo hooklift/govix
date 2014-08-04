@@ -6,13 +6,11 @@ import (
 
 func TestFindItems(t *testing.T) {
 	t.Log("Here we go!")
-	host, err := Connect(
-		"",
-		0,
-		"",
-		"",
-		VMWARE_WORKSTATION,
-		VERIFY_SSL_CERT)
+
+	host, err := Connect(ConnectConfig{
+		Provider: VMWARE_WORKSTATION,
+		Options:  VERIFY_SSL_CERT,
+	})
 
 	if err != nil {
 		t.Errorf("incorrect result\ngot:  %#v\nwant: %#v", err, nil)
