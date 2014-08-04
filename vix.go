@@ -351,7 +351,8 @@ func Connect(config ConnectConfig) (*Host, error) {
 	}
 
 	host := &Host{
-		handle: hostHandle,
+		handle:   hostHandle,
+		Provider: config.Provider,
 	}
 
 	runtime.SetFinalizer(host, cleanupHost)

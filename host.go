@@ -12,7 +12,8 @@ import (
 )
 
 type Host struct {
-	handle C.VixHandle
+	Provider Provider
+	handle   C.VixHandle
 }
 
 // Destroys the state for a particular host instance

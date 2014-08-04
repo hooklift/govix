@@ -1546,9 +1546,9 @@ func (v *VM) RevertToSnapshot(snapshot *Snapshot, options VMPowerOption) error {
 // at a newer version than the VIX library.
 //
 // Remarks:
-// * The virtual machine must be powered off to do this operation.
-// * When the VM is already up-to-date, the function returns without errors.
-// * This function is not supported when using the VMWARE_PLAYER provider.
+//   * The virtual machine must be powered off to do this operation.
+//   * When the VM is already up-to-date, the function returns without errors.
+//   * This function is not supported when using the VMWARE_PLAYER provider.
 //
 // Since VMware Server 1.0
 func (v *VM) UpgradeVHardware() error {
