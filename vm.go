@@ -1827,3 +1827,7 @@ func (v *VM) SetNumberVcpus(vcpus uint8) error {
 func (v *VM) SetDisplayName(name string) error {
 	return v.changeVmxSetting("displayName", name)
 }
+
+func (v *VM) SetAnnotation(text string) error {
+	return v.changeVmxSetting("annotation", text)
+}
