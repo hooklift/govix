@@ -7,6 +7,7 @@ package vix
 import "C"
 
 import (
+	"math"
 	"runtime"
 	"strconv"
 	"unsafe"
@@ -1849,7 +1850,13 @@ func (v *VM) changeVmxSetting(name string, value string) error {
 // VM has to be powered off in order to change
 // this parameter
 func (v *VM) SetMemorySize(size uint) error {
+	// Makes sure memory size is divisible by 4, otherwise VMware is going to
+	// silently fail, cancelling vix operations.
+	if size%4 != 0 {
+		size = uint(math.Floor(float64((size / 4) * 4)))
+	}
 	memsize := strconv.Itoa(int(size))
+
 	return v.changeVmxSetting("memsize", memsize)
 }
 
