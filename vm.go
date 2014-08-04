@@ -262,17 +262,21 @@ func (v *VM) GuestOS() (string, error) {
 //
 // Remarks:
 //
-// * This function enables/disables all shared folders as a feature on a
-//   virtual machine.
-//   In order to access shared folders on a guest, the feature has to be enabled,
-//   and in addition, the individual shared folder has to be enabled.
-// * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * In this release, this function requires the virtual machine to be powered
-//   on with VMware Tools installed.
-// * Shared folders are not supported for the following guest operating systems:
-//   Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * On Linux virtual machines, calling this function will automatically mount
-//   shared folder(s) in the guest.
+//   * This function enables/disables all shared folders as a feature on a
+//     virtual machine. In order to access shared folders on a guest, the
+//     feature has to be enabled, and in addition, the individual shared folder
+//     has to be enabled.
+//
+//   * It is not necessary to call VM.LoginInGuest() before calling this function.
+//
+//   * In this release, this function requires the virtual machine to be powered
+//     on with VMware Tools installed.
+//
+//   * Shared folders are not supported for the following guest operating systems:
+//     Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+//
+//   * On Linux virtual machines, calling this function will automatically mount
+//     shared folder(s) in the guest.
 //
 // Since VMware Workstation 6.0, not available on Server 2.0.
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -916,19 +920,22 @@ func (v *VM) RootSnapshot(index int) (*Snapshot, error) {
 //
 // Parameters:
 //
-// name: Specifies the name of the shared folder.
-// hostpath: Specifies the host path of the shared folder.
-// options: The new flag settings.
+//   name: Specifies the name of the shared folder.
+//   hostpath: Specifies the host path of the shared folder.
+//   options: The new flag settings.
 //
 // Remarks:
 //
-// * This function modifies the state flags of an existing shared folder.
-// * If the shared folder does not exist before calling
-//   this function, the function will return a not found error.
-// * Shared folders are not supported for the following guest operating
-//   systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered
-//   on with VMware Tools installed.
+//   * This function modifies the state flags of an existing shared folder.
+//
+//   * If the shared folder does not exist before calling
+//     this function, the function will return a not found error.
+//
+//   * Shared folders are not supported for the following guest operating
+//     systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+//
+//   * In this release, this function requires the virtual machine to be powered
+//     on with VMware Tools installed.
 //
 // Since VMware Workstation 6.0
 func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOption) error {
@@ -967,16 +974,18 @@ func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOpt
 //
 // Parameters:
 //
-// index: Identifies the shared folder
+//   index: Identifies the shared folder
 //
 // Remarks:
 //
-// * Shared folders are indexed from 0 to n-1, where n is the number of shared
-//   folders. Use the function VM.NumSharedFolders() to get the value of n.
-// * Shared folders are not supported for the following guest operating systems:
-//   Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered
-//   on with VMware Tools installed.
+//   * Shared folders are indexed from 0 to n-1, where n is the number of shared
+//     folders. Use the function VM.NumSharedFolders() to get the value of n.
+//
+//   * Shared folders are not supported for the following guest operating systems:
+//     Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+//
+//   * In this release, this function requires the virtual machine to be powered
+//     on with VMware Tools installed.
 //
 // Since VMware Workstation 6.0
 func (v *VM) SharedFolderState(index int) (string, string, int, error) {
