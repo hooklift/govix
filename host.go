@@ -161,26 +161,29 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 //
 // Parameters:
 //
-// VmxFile:
-// The path name of the .vmx file on the host.
+//   vmxFile: The path name of the .vmx file on the host.
 //
 // Remarks:
 //
-// * This function registers the virtual machine identified by vmxFile, which
-//   is a storage path to the configuration file (.vmx) for that virtual machine.
-//   You can register a virtual machine regardless of its power state.
-// * The format of the path name depends on the host operating system.
-//   If the path name includes backslash characters, you need to precede each
-//   one with an escape character. Path to storage [standard] or [storage1] may
-//   vary.
-// * For VMware Server 1.x, supply the full path name instead of storage path,
-//   and specify provider VMWARE_SERVER to connect.
-// * This function has no effect on Workstation or Player, which lack a virtual
-//   machine inventory.
-// * It is not a Vix error to register an already-registered virtual machine,
-//   although the VMware Server UI shows an error icon in the Task pane.
-//   Trying to register a non-existent virtual machine results in error 2000,
-//   VIX_E_NOT_FOUND.
+//  * This function registers the virtual machine identified by vmxFile, which
+//    is a storage path to the configuration file (.vmx) for that virtual machine.
+//    You can register a virtual machine regardless of its power state.
+//
+//  * The format of the path name depends on the host operating system.
+//    If the path name includes backslash characters, you need to precede each
+//    one with an escape character. Path to storage [standard] or [storage1] may
+//    vary.
+//
+//  * For VMware Server 1.x, supply the full path name instead of storage path,
+//    and specify provider VMWARE_SERVER to connect.
+//
+//  * This function has no effect on Workstation or Player, which lack a virtual
+//    machine inventory.
+//
+//  * It is not a Vix error to register an already-registered virtual machine,
+//    although the VMware Server UI shows an error icon in the Task pane.
+//    Trying to register a non-existent virtual machine results in error 2000,
+//    VIX_E_NOT_FOUND.
 //
 // Since VMware Server 1.0
 func (h *Host) RegisterVm(vmxFile string) error {

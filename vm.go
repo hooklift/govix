@@ -1165,35 +1165,41 @@ func (v *VM) PowerOff(options VMPowerOption) error {
 //
 // Parameters:
 //
-// options: VMPOWEROP_NORMAL or VMPOWEROP_LAUNCH_GUI.
+//   options: VMPOWEROP_NORMAL or VMPOWEROP_LAUNCH_GUI.
 //
 // Remarks:
-// * This operation completes when the virtual machine has started to boot.
-//   If the VMware Tools have been installed on this guest operating system, you
-//   can call VM.WaitForToolsInGuest() to determine when the guest has finished
-//   booting.
-// * After powering on, you must call VM.WaitForToolsInGuest() before executing
-//   guest operations or querying guest properties.
-// * In Server 1.0, when you power on a virtual machine, the virtual machine is
-//   powered on independent of a console window. If a console window is open,
-//   it remains open. Otherwise, the virtual machine is powered on without a
-//   console window.
-// * To display a virtual machine with a Workstation user interface, the options
-//   parameter must have the VMPOWEROP_LAUNCH_GUI flag, and you must be
-//   connected to the host with the VMWARE_WORKSTATION provider flag. If there
-//   is an existing instance of the Workstation user interface, the virtual
-//   machine will power on in a new tab within that instance.
-//   Otherwise, a new instance of Workstation will open, and the virtual machine
-//   will power on there.
-// * To display a virtual machine with a Player user interface, the options
-//   parameter must have the VMPOWEROP_LAUNCH_GUI flag, and you must be
-//   connected to the host with the VMWARE_PLAYER flag. A new instance of Player
-//   will always open, and the virtual machine will power on there.
-// * This function can also be used to resume execution of a suspended virtual
-//   machine.
-// * The VMPOWEROP_LAUNCH_GUI option is not supported for encrypted virtual
-//   machines; attempting to power on with this option results in
-//   VIX_E_NOT_SUPPORTED.
+//   * This operation completes when the virtual machine has started to boot.
+//     If the VMware Tools have been installed on this guest operating system, you
+//     can call VM.WaitForToolsInGuest() to determine when the guest has finished
+//     booting.
+//
+//   * After powering on, you must call VM.WaitForToolsInGuest() before executing
+//     guest operations or querying guest properties.
+//
+//   * In Server 1.0, when you power on a virtual machine, the virtual machine is
+//     powered on independent of a console window. If a console window is open,
+//     it remains open. Otherwise, the virtual machine is powered on without a
+//     console window.
+//
+//   * To display a virtual machine with a Workstation user interface, the options
+//     parameter must have the VMPOWEROP_LAUNCH_GUI flag, and you must be
+//     connected to the host with the VMWARE_WORKSTATION provider flag. If there
+//     is an existing instance of the Workstation user interface, the virtual
+//     machine will power on in a new tab within that instance.
+//     Otherwise, a new instance of Workstation will open, and the virtual machine
+//     will power on there.
+//
+//   * To display a virtual machine with a Player user interface, the options
+//     parameter must have the VMPOWEROP_LAUNCH_GUI flag, and you must be
+//     connected to the host with the VMWARE_PLAYER flag. A new instance of Player
+//     will always open, and the virtual machine will power on there.
+//
+//   * This function can also be used to resume execution of a suspended virtual
+//     machine.
+//
+//   * The VMPOWEROP_LAUNCH_GUI option is not supported for encrypted virtual
+//     machines; attempting to power on with this option results in
+//     VIX_E_NOT_SUPPORTED.
 //
 // Since VMware Server 1.0
 func (v *VM) PowerOn(options VMPowerOption) error {
