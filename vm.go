@@ -485,17 +485,15 @@ func (v *VM) Screenshot() ([]byte, error) {
 //
 // Parameters:
 //
-//   cloneType:
-//     Must be either CLONETYPE_FULL or CLONETYPE_LINKED.
-//       * CLONETYPE_FULL - Creates a full, independent clone of the virtual machine.
-//       * CLONETYPE_LINKED - Creates a linked clone, which is a copy of a virtual
-//         machine that shares virtual disks with the parent
-//         virtual machine in an ongoing manner.
-//         This conserves disk space as long as the parent and
-//         clone do not change too much from their original state.
+//   cloneType: Must be either CLONETYPE_FULL or CLONETYPE_LINKED.
+//     * CLONETYPE_FULL: Creates a full, independent clone of the virtual machine.
+//     * CLONETYPE_LINKED: Creates a linked clone, which is a copy of a virtual
+//       machine that shares virtual disks with the parent
+//       virtual machine in an ongoing manner.
+//       This conserves disk space as long as the parent and
+//       clone do not change too much from their original state.
 //
-//   destVmxFile:
-//     The path name of the virtual machine configuration file that will
+//   destVmxFile: The path name of the virtual machine configuration file that will
 //     be created for the virtual machine clone produced by this operation.
 //     This should be a full absolute path name, with directory names delineated
 //     according to host system convention: \ for Windows and / for Linux.
@@ -580,17 +578,14 @@ func cleanupVM(v *VM) {
 //
 // Parameters:
 //
-//   name:
-//     A user-defined name for the snapshot; need not be unique.
+//   name: A user-defined name for the snapshot; need not be unique.
 //
-//   description:
-//     A user-defined description for the snapshot.
+//   description: A user-defined description for the snapshot.
 //
-//   options:
-//     Flags to specify how the snapshot should be created. Any combination of the
-//     following or 0 to exclude memory:
-//       * SNAPSHOT_INCLUDE_MEMORY - Captures the full state of a running virtual
-//         machine, including the memory.
+//   options: Flags to specify how the snapshot should be created. Any combination of the
+//   following or 0 to exclude memory:
+//     * SNAPSHOT_INCLUDE_MEMORY: Captures the full state of a running virtual
+//       machine, including the memory.
 //
 // Remarks:
 //
@@ -671,8 +666,7 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 //
 // Parameters:
 //
-//   snapshot:
-//     A Snapshot instance. Call VM.RootSnapshot() to get a snapshot instance.
+//   snapshot: A Snapshot instance. Call VM.RootSnapshot() to get a snapshot instance.
 //
 // Remarks:
 //
@@ -725,11 +719,10 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 //
 // Parameters:
 //
-//   options:
-//     For VMware Server 2.0 and ESX, this value must be VMDELETE_DISK_FILES.
-//     For all other versions it can be either 0 or VMDELETE_DISK_FILES.
-//     When option is VIX_VMDELETE_DISK_FILES, deletes all associated files.
-//     When option is 0, does not delete *.vmdk virtual disk file(s).
+//   options: For VMware Server 2.0 and ESX, this value must be VMDELETE_DISK_FILES.
+//   For all other versions it can be either 0 or VMDELETE_DISK_FILES.
+//   When option is VIX_VMDELETE_DISK_FILES, deletes all associated files.
+//   When option is 0, does not delete *.vmdk virtual disk file(s).
 //
 // Remarks:
 //
@@ -807,8 +800,7 @@ func (v *VM) CurrentSnapshot() (*Snapshot, error) {
 //
 // Parameters:
 //
-//   name:
-//     Identifies a snapshot name.
+//   name: Identifies a snapshot name.
 //
 // Remarks:
 //
@@ -1184,8 +1176,8 @@ func (v *VM) Resume() error {
 //
 // Parameters:
 //
-//   options:
-//     Set of VMPowerOption flags to consider when powering off the virtual machine.
+//   options: Set of VMPowerOption flags to consider when powering off the
+//   virtual machine.
 //
 // Remarks:
 //   * If you call this function while the virtual machine is suspended or powered
@@ -1414,27 +1406,22 @@ func (v *VM) Suspend() error {
 //
 // Parameters:
 //
-//   varType:
-//     The type of variable to read. The currently supported values are:
+//   varType: The type of variable to read. The currently supported values are:
+//     * VM_GUEST_VARIABLE: A "Guest Variable". This is a runtime-only
+//       value; it is never stored persistently. This is the same guest
+//       variable that is exposed through the VMControl APIs, and is a simple
+//       way to pass runtime values in and out of the guest.
 //
-//       * VM_GUEST_VARIABLE:
-//         A "Guest Variable". This is a runtime-only
-//         value; it is never stored persistently. This is the same guest
-//         variable that is exposed through the VMControl APIs, and is a simple
-//         way to pass runtime values in and out of the guest.
+//     * VM_CONFIG_RUNTIME_ONLY: The configuration state of the virtual machine.
+//       This is the .vmx file that is stored on the host. You can read this and
+//       it will return the persistent data. If you write to this, it will only
+//       be a runtime change, so changes will be lost when the VM powers off.
 //
-//       * VM_CONFIG_RUNTIME_ONLY:
-//         The configuration state of the virtual machine. This is the .vmx file
-//         that is stored on the host. You can read this and it will return the
-//         persistent data. If you write to this, it will only be a runtime
-//         change, so changes will be lost when the VM powers off.
-//
-//       * GUEST_ENVIRONMENT_VARIABLE:
-//         An environment variable in the guest of the VM. On a Windows NT series
-//         guest, writing these values is saved persistently so they are immediately
-//         visible to every process.
-//         On a Linux or Windows 9X guest, writing these values is not persistent
-//         so they are only visible to the VMware tools process.
+//     * GUEST_ENVIRONMENT_VARIABLE: An environment variable in the guest of
+//       the VM. On a Windows NT series guest, writing these values is saved
+//       persistently so they are immediately visible to every process.
+//       On a Linux or Windows 9X guest, writing these values is not persistent
+//       so they are only visible to the VMware tools process.
 //
 //   name: The name of the variable.
 //
@@ -1486,55 +1473,54 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 //
 // Parameters:
 //
-// varType:
-// The type of variable to write. The currently supported values are:
-//		* VM_GUEST_VARIABLE - A "Guest Variable". This is a runtime-only value;
-//							  it is never stored persistently.
-//							  This is the same guest variable that is exposed
-// 							  through the VMControl APIs, and is a simple way to
-// 							  pass runtime values in and out of the guest.
-//		* VM_CONFIG_RUNTIME_ONLY - 	The configuration state of the virtual
-//									machine. This is the .vmx file that is
-//									stored on the host.
-//									You can read this and it will return the
-//									persistent data. If you write to this, it
-//									will only be a runtime change, so changes
-//									will be lost when the VM powers off.
-//									Not supported on ESX hosts.
-//		* GUEST_ENVIRONMENT_VARIABLE - An environment variable in the guest of
-//									   the VM. On a Windows NT series guest,
-//									   writing these values is saved
-//									   persistently so they are immediately
-//									   visible to every process.
-//									   On a Linux or Windows 9X guest, writing
-//									   these values is not persistent so they
-//									   are only visible to the VMware tools
-// 									   process. Requires root or Administrator
-// 									   privilege.
+//   varType: The type of variable to write. The currently supported values are:
+//     * VM_GUEST_VARIABLE: A "Guest Variable". This is a runtime-only value;
+//       it is never stored persistently. This is the same guest variable that
+//       is exposed through the VMControl APIs, and is a simple way to
+//       pass runtime values in and out of the guest.
+
+//     * VM_CONFIG_RUNTIME_ONLY: The configuration state of the virtual
+//       machine. This is the .vmx file that is stored on the host.
+//       You can read this and it will return the persistent data. If you write
+//       to this, it will only be a runtime change, so changes will be lost
+//       when the VM powers off. Not supported on ESX hosts.
+
+//     * GUEST_ENVIRONMENT_VARIABLE: An environment variable in the guest of
+//       the VM. On a Windows NT series guest, writing these values is saved
+//       persistently so they are immediately visible to every process.
+//       On a Linux or Windows 9X guest, writing these values is not persistent
+//       so they are only visible to the VMware tools process. Requires root
+//       or Administrator privilege.
 //
-// name: The name of the variable.
-// value: The value to be written.
+//   name: The name of the variable.
+//   value: The value to be written.
 //
 // Remarks:
 //
-// * The VM_CONFIG_RUNTIME_ONLY variable type is not supported on ESX hosts.
-// * You must call VM.LoginInGuest() before calling this function to write a
-//   GUEST_ENVIRONMENT_VARIABLE value.
-//   You do not have to call VM.LoginInGuest() to use this function to write a
-//   VM_GUEST_VARIABLE or a VM_CONFIG_RUNTIME_ONLY value.
-// * Do not use the slash '/' character in a VM_GUEST_VARIABLE variable name;
-//   doing so produces a VIX_E_INVALID_ARG error.
-// * Do not use the equal '=' character in the value parameter; doing so
-//   produces a VIX_E_INVALID_ARG error.
-// * On Linux guests, you must login as root to change environment variables
-//   (when variable type is GUEST_ENVIRONMENT_VARIABLE)
-//   otherwise it produces a VIX_E_GUEST_USER_PERMISSIONS error.
-// * On Windows Vista guests, when variable type is GUEST_ENVIRONMENT_VARIABLE,
-//   you must turn off User Account Control (UAC) in Control Panel >
-//   User Accounts > User Accounts > Turn User Account on or off,
-//   in order for this function to work.
+//   * The VM_CONFIG_RUNTIME_ONLY variable type is not supported on ESX hosts.
+//
+//   * You must call VM.LoginInGuest() before calling this function to write a
+//     GUEST_ENVIRONMENT_VARIABLE value.
+//     You do not have to call VM.LoginInGuest() to use this function to write a
+//     VM_GUEST_VARIABLE or a VM_CONFIG_RUNTIME_ONLY value.
+//
+//   * Do not use the slash '/' character in a VM_GUEST_VARIABLE variable name;
+//     doing so produces a VIX_E_INVALID_ARG error.
+//
+//   * Do not use the equal '=' character in the value parameter; doing so
+//     produces a VIX_E_INVALID_ARG error.
+//
+//   * On Linux guests, you must login as root to change environment variables
+//     (when variable type is GUEST_ENVIRONMENT_VARIABLE)
+//     otherwise it produces a VIX_E_GUEST_USER_PERMISSIONS error.
+//
+//   * On Windows Vista guests, when variable type is GUEST_ENVIRONMENT_VARIABLE,
+//     you must turn off User Account Control (UAC) in Control Panel >
+//     User Accounts > User Accounts > Turn User Account on or off,
+//     in order for this function to work.
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1573,40 +1559,46 @@ func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
 // Parameters:
 //
 //   snapshot: A Snapshot instance. Call VVM.GetRootSnapshot() to get a snapshot
-// 			   instance.
+//   instance.
+//
 //   options: Any applicable VMPowerOption. If the virtual machine was powered on
-//            when the snapshot was created, then this will determine how the
-// 			  virtual machine is powered back on. To prevent the virtual machine
-// 			  from being powered on regardless of the power state when the
-// 			  snapshot was created, use the  VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON
-//			  flag. VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is mutually exclusive
-// 			  to all other VMPowerOpOptions.
+//   when the snapshot was created, then this will determine how the
+//   virtual machine is powered back on. To prevent the virtual machine
+//   from being powered on regardless of the power state when the
+//   flag. VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is mutually exclusive
+//   to all other VMPowerOpOptions.
 //
 // Remarks:
 //
-// * Restores the virtual machine to the state when the specified snapshot was
-//   created.
-// 	 This function can power on, power off, or suspend a virtual machine.
-//   The resulting power state reflects the power state when the snapshot was
-//   created.
-// * When you revert a powered on virtual machine and want it to display in the
-//   Workstation user interface, options must have the VMPOWEROP_LAUNCH_GUI
-//   flag, unless the VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is used.
-// * The ToolsState property of the virtual machine is undefined after the
-//   snapshot is reverted.
-// * Starting in VMware Workstation 6.5, snapshot operations are allowed on
-//   virtual machines that are part of a team.
-//   Previously, this operation failed with error code PROPERTY_VM_IN_VMTEAM.
-//   Team members snapshot independently so they can have different and
-//   inconsistent snapshot states.
-// * This function is not supported when using the VMWARE_PLAYER provider
-// * If the virtual machine is open and powered off in the UI, this function
-//   now closes the virtual machine in the UI before reverting to the snapshot.
-//   To refresh this property, you must wait for tools in the guest.
-// * After reverting to a snapshot, you must call VM.WaitForToolsInGuest()
-//   before executing guest operations or querying guest properties.
+//   * Restores the virtual machine to the state when the specified snapshot was
+//     created. This function can power on, power off, or suspend a virtual machine.
+//     The resulting power state reflects the power state when the snapshot was
+//     created.
+//
+//   * When you revert a powered on virtual machine and want it to display in the
+//     Workstation user interface, options must have the VMPOWEROP_LAUNCH_GUI
+//     flag, unless the VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is used.
+//
+//   * The ToolsState property of the virtual machine is undefined after the
+//     snapshot is reverted.
+//
+//   * Starting in VMware Workstation 6.5, snapshot operations are allowed on
+//     virtual machines that are part of a team.
+//     Previously, this operation failed with error code PROPERTY_VM_IN_VMTEAM.
+//     Team members snapshot independently so they can have different and
+//     inconsistent snapshot states.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider
+//
+//   * If the virtual machine is open and powered off in the UI, this function
+//     now closes the virtual machine in the UI before reverting to the snapshot.
+//     To refresh this property, you must wait for tools in the guest.
+//
+//   * After reverting to a snapshot, you must call VM.WaitForToolsInGuest()
+//     before executing guest operations or querying guest properties.
 //
 // Since VMware Server 1.0
+//
 func (v *VM) RevertToSnapshot(snapshot *Snapshot, options VMPowerOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1644,6 +1636,7 @@ func (v *VM) RevertToSnapshot(snapshot *Snapshot, options VMPowerOption) error {
 //   * This function is not supported when using the VMWARE_PLAYER provider.
 //
 // Since VMware Server 1.0
+//
 func (v *VM) UpgradeVHardware() error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1673,84 +1666,97 @@ func (v *VM) UpgradeVHardware() error {
 //
 // Parameters:
 //
-// * username: The name of a user account on the guest operating system.
-// * password: The password of the account identified by username
-// * options: Must be LOGIN_IN_GUEST_NONE or
-//            LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT - directs guest
-//            commands invoked after the call to
-// VM.LoginInGuest() to be run from within the session of the user who is
-// interactively logged into the guest operating system.
-// See the remarks below for more information about
-// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT.
+//   username: The name of a user account on the guest operating system.
+//
+//   password: The password of the account identified by username
+//
+//   options: Must be LOGIN_IN_GUEST_NONE or
+//   LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT - directs guest
+//   commands invoked after the call to VM.LoginInGuest() to be run from within
+//   the session of the user who is interactively logged into the guest operating
+//   system.
+//
+//   See the remarks below for more information about LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT.
 //
 // Remarks:
 //
-// This function validates the account name and password in the guest OS.
-// You must call this function before calling functions that perform operations
-// on the guest OS, such as those below. Otherwise you do not need to call this
-// function.
-// Logins are supported on Linux and Windows. To log in as a Windows Domain
-// user, specify the 'username' parameter in the form "domain\username".
-// This function does not respect access permissions on Windows 95, Windows 98,
-// and Windows ME, due to limitations of the permissions model in those systems.
-// Other guest operating systems are not supported for login, including Solaris,
-// FreeBSD, and Netware.
-// The option LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT should be used to
-// ensure that the functions Guest.CaptureScreenImage(), and
-// Guest.RunProgramInGuest() work correctly.
+//   * This function validates the account name and password in the guest OS.
 //
-// All guest operations for a particular VM are done using the identity you
-// provide to VM.LoginInGuest().
-// As a result, guest operations are restricted by file system privileges in the
-// guest OS that apply to the user specified in VM.LoginInGuest(). For example,
-// Guest.RmDir() might fail if the user named in VM.LoginInGuest() does not have
-// access permissions to the directory in the guest OS.
-// VM.LoginInGuest() changes the behavior of Vix functions to use a user account.
-// It does not log a user into a console session on the guest OS. As a result,
-// you might not see
-// the user logged in from within the guest OS. Moreover, operations such as
-// rebooting the guest do not clear the guest credentials.
+//   * You must call this function before calling functions that perform operations
+//     on the guest OS, such as those below. Otherwise you do not need to call this
+//     function.
 //
-// The virtual machine must be powered on before calling this function.
-// VMware Tools must be installed and running on the guest OS before calling
-// this function.
-// You can call VM.WaitForToolsInGuest() to wait for the tools to run.
-// Once VM.LoginInGuest() has succeeded, the user session remains valid until
-// Guest.Logout() is called successfully,
-// VM.LoginInGuest() is called successfully with different user credentials,
-// the virtual machine handle's reference count reaches 0, or
-// the client applications exits.
-// The special login type VIX_CONSOLE_USER_NAME is no longer supported.
-// Calling VM.LoginInGuest() with LOGIN_IN_GUEST_NONE as 'options' can be done
-// at any time when the VMware Tools are running in the guest.
-// Calling VM.LoginInGuest() with the
-// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag can only be done when
-// there is an interactive user logged into the guest OS. Specifically,
-// the "interactive user" refers to the user who has logged into the guest OS
-// through the console (for instance, the user who logged into the Windows
-// log-in screen).
-// The VIX user is the user whose credentials are being provided in the call to
-// VM.LoginInGuest().
+//   * Logins are supported on Linux and Windows. To log in as a Windows Domain
+//     user, specify the 'username' parameter in the form "domain\username".
 //
-// With LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, there must be an
-// interactive user logged into the guest when the call to VM.LoginInGuest()
-// is made, and the VIX user must match the interactive user (they must have
-// same account in the guest OS).
+//   * This function does not respect access permissions on Windows 95, Windows 98,
+//     and Windows ME, due to limitations of the permissions model in those systems.
 //
-// Using LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that the
-// environment in which guest commands are executed is as close as possible to
-// the normal environment in which a user interacts with the guest OS. Without
-// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, commands may be run in a more
-// limited environment; however, omitting
-// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that commands can
-// be run regardless of whether an interactive user is present in the guest.
+//   * Other guest operating systems are not supported for login, including Solaris,
+//     FreeBSD, and Netware.
 //
-// On Linux guest operating systems, the
-// LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag requires that X11 be
-// installed and running.
+//   * The option LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT should be used to
+//     ensure that the functions Guest.CaptureScreenImage(), and
+//     Guest.RunProgramInGuest() work correctly.
+//
+//   * All guest operations for a particular VM are done using the identity you
+//     provide to VM.LoginInGuest(). As a result, guest operations are restricted
+//     by file system privileges in the guest OS that apply to the user specified
+//     in VM.LoginInGuest(). For example, Guest.RmDir() might fail if the user
+//     named in VM.LoginInGuest() does not have access permissions to the directory
+//     in the guest OS.
+//
+//   * VM.LoginInGuest() changes the behavior of Vix functions to use a user account.
+//     It does not log a user into a console session on the guest OS. As a result,
+//     you might not see the user logged in from within the guest OS. Moreover,
+//     operations such as rebooting the guest do not clear the guest credentials.
+//
+//   * The virtual machine must be powered on before calling this function.
+//
+//   * VMware Tools must be installed and running on the guest OS before calling
+//     this function.
+//
+//   * You can call VM.WaitForToolsInGuest() to wait for the tools to run.
+//
+//   * Once VM.LoginInGuest() has succeeded, the user session remains valid until
+//     Guest.Logout() is called successfully, VM.LoginInGuest() is called
+//     successfully with different user credentials, the virtual machine handle's
+//     reference count reaches 0, or the client applications exits.
+//
+//   * The special login type VIX_CONSOLE_USER_NAME is no longer supported.
+//
+//   * Calling VM.LoginInGuest() with LOGIN_IN_GUEST_NONE as 'options' can be done
+//     at any time when the VMware Tools are running in the guest.
+//
+//   * Calling VM.LoginInGuest() with the LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT
+//     flag can only be done when there is an interactive user logged into the guest OS.
+//     Specifically, the "interactive user" refers to the user who has logged into
+//     the guest OS through the console (for instance, the user who logged into the Windows
+//     log-in screen).
+//
+//   * The VIX user is the user whose credentials are being provided in the call to
+//     VM.LoginInGuest().
+//
+//   * With LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, there must be an
+//     interactive user logged into the guest when the call to VM.LoginInGuest()
+//     is made, and the VIX user must match the interactive user (they must have
+//     same account in the guest OS).
+//
+//   * Using LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that the
+//     environment in which guest commands are executed is as close as possible to
+//     the normal environment in which a user interacts with the guest OS. Without
+//     LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT, commands may be run in a more
+//     limited environment; however, omitting
+//     LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT will ensure that commands can
+//     be run regardless of whether an interactive user is present in the guest.
+//
+//   * On Linux guest operating systems, the
+//     LOGIN_IN_GUEST_REQUIRE_INTERACTIVE_ENVIRONMENT flag requires that X11 be
+//     installed and running.
 //
 // Since VMware Server 1.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+//
 func (v *VM) LoginInGuest(username, password string, options GuestLoginOption) (*Guest, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1788,47 +1794,55 @@ func (v *VM) LoginInGuest(username, password string, options GuestLoginOption) (
 //
 // Parameters:
 //
-// options: May be either INSTALLTOOLS_MOUNT_TOOLS_INSTALLER or
-//          INSTALLTOOLS_AUTO_UPGRADE. Either flag can be combined with the
-//          INSTALLTOOLS_RETURN_IMMEDIATELY flag using the bitwise inclusive
-//          OR operator (|). See remarks for more information.
+//   options: May be either INSTALLTOOLS_MOUNT_TOOLS_INSTALLER or
+//   INSTALLTOOLS_AUTO_UPGRADE. Either flag can be combined with the
+//   INSTALLTOOLS_RETURN_IMMEDIATELY flag using the bitwise inclusive
+//   OR operator (|). See remarks for more information.
 //
 // Remarks:
 //
-// * If the option INSTALLTOOLS_MOUNT_TOOLS_INSTALLER is provided, the function
-//   prepares an ISO image to install VMware Tools on the guest operating system.
-//   If autorun is enabled, as it often is on Windows, installation begins,
-//   otherwise you must initiate installation.
-//   If VMware Tools is already installed, this function prepares to upgrade it
-//   to the version matching the product.
-// * If the option VIX_INSTALLTOOLS_AUTO_UPGRADE is provided, the function
-//   attempts to automatically upgrade VMware Tools without any user interaction
-//   required, and then reboots the virtual machine. This option requires that a
-//   version of VMware Tools already be installed. If VMware Tools is not
-//   already installed, the function will fail.
-// * When the option INSTALLTOOLS_AUTO_UPGRADE is used on virtual machine with a
-//   Windows guest operating system, the upgrade process may cause the Windows
-//   guest to perform a controlled reset in order to load new device drivers.
-//   If you intend to perform additional guest operations after upgrading the
-//   VMware Tools, it is recommanded that after this task completes, that the
-//   guest be reset using VM.Reset() with the VMPOWEROP_FROM_GUEST flag,
-//   followed by calling VM.WaitForToolsInGuest() to ensure that the guest has
-//   reached a stable state.
-// * If the option INSTALLTOOLS_AUTO_UPGRADE is provided and the newest version
-//   of tools is already installed, the function will return successfully.
-//   Some older versions of Vix may return VIX_E_TOOLS_INSTALL_ALREADY_UP_TO_DATE.
-// * If the INSTALLTOOLS_RETURN_IMMEDIATELY flag is set, this function will
-//   return immediately after mounting the VMware Tools ISO image.
-// * If the INSTALLTOOLS_RETURN_IMMEDIATELY flag is not set for a WS host,
-//   this function will return only after the installation successfully completes
-//   or is cancelled.
-// * The virtual machine must be powered on to do this operation.
-// * If the Workstation installer calls for an ISO file that is not downloaded,
-//   this function returns an error, rather than attempting to download the ISO
-//   file.
+//   * If the option INSTALLTOOLS_MOUNT_TOOLS_INSTALLER is provided, the function
+//     prepares an ISO image to install VMware Tools on the guest operating system.
+//     If autorun is enabled, as it often is on Windows, installation begins,
+//     otherwise you must initiate installation.
+//     If VMware Tools is already installed, this function prepares to upgrade it
+//     to the version matching the product.
+//
+//   * If the option VIX_INSTALLTOOLS_AUTO_UPGRADE is provided, the function
+//     attempts to automatically upgrade VMware Tools without any user interaction
+//     required, and then reboots the virtual machine. This option requires that a
+//     version of VMware Tools already be installed. If VMware Tools is not
+//     already installed, the function will fail.
+//
+//   * When the option INSTALLTOOLS_AUTO_UPGRADE is used on virtual machine with a
+//     Windows guest operating system, the upgrade process may cause the Windows
+//     guest to perform a controlled reset in order to load new device drivers.
+//     If you intend to perform additional guest operations after upgrading the
+//     VMware Tools, it is recommanded that after this task completes, that the
+//     guest be reset using VM.Reset() with the VMPOWEROP_FROM_GUEST flag,
+//     followed by calling VM.WaitForToolsInGuest() to ensure that the guest has
+//     reached a stable state.
+//
+//   * If the option INSTALLTOOLS_AUTO_UPGRADE is provided and the newest version
+//     of tools is already installed, the function will return successfully.
+//     Some older versions of Vix may return VIX_E_TOOLS_INSTALL_ALREADY_UP_TO_DATE.
+//
+//   * If the INSTALLTOOLS_RETURN_IMMEDIATELY flag is set, this function will
+//     return immediately after mounting the VMware Tools ISO image.
+//
+//   * If the INSTALLTOOLS_RETURN_IMMEDIATELY flag is not set for a WS host,
+//     this function will return only after the installation successfully completes
+//     or is cancelled.
+//
+//   * The virtual machine must be powered on to do this operation.
+//
+//   * If the Workstation installer calls for an ISO file that is not downloaded,
+//     this function returns an error, rather than attempting to download the ISO
+//     file.
 //
 // Since VMware Server 1.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+//
 func (v *VM) InstallTools(options InstallToolsOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1859,12 +1873,11 @@ func (v *VM) InstallTools(options InstallToolsOption) error {
 //
 // Parameters:
 //
-//   timeout:
-//     The timeout in seconds. If VMware Tools has not started by
-//     this time, the operation completes with an error.
-//     If the value of this argument is zero or negative, then this
-//     operation will wait indefinitely until the VMware Tools start
-//     running in the guest operating system.
+//   timeout: The timeout in seconds. If VMware Tools has not started by
+//   this time, the operation completes with an error.
+//   If the value of this argument is zero or negative, then this
+//   operation will wait indefinitely until the VMware Tools start
+//   running in the guest operating system.
 //
 // Remarks:
 //
@@ -1892,6 +1905,7 @@ func (v *VM) InstallTools(options InstallToolsOption) error {
 //
 // Since VMware Server 1.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+//
 func (v *VM) WaitForToolsInGuest(timeout time.Duration) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1972,10 +1986,12 @@ func (v *VM) SetNumberVcpus(vcpus uint8) error {
 	return v.changeVmxSetting("numvcpus", numvcpus)
 }
 
+// Sets virtual machine name
 func (v *VM) SetDisplayName(name string) error {
 	return v.changeVmxSetting("displayName", name)
 }
 
+// Sets annotations for the virtual machine
 func (v *VM) SetAnnotation(text string) error {
 	return v.changeVmxSetting("annotation", text)
 }
