@@ -1823,3 +1823,7 @@ func (v *VM) SetNumberVcpus(vcpus uint8) error {
 	numvcpus := strconv.Itoa(int(vcpus))
 	return v.changeVmxSetting("numvcpus", numvcpus)
 }
+
+func (v *VM) SetDisplayName(name string) error {
+	return v.changeVmxSetting("displayName", name)
+}
