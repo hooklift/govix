@@ -20,13 +20,27 @@ This API supports:
 
 For a more detailed information about the API, please refer to the API documentation.
 
-## To keep in mind
-In order for Go to find libvix when running your compiled binary, a govix path has to be added to the LD_LIBRARY_PATH environment variable. Example:
+## To keep in mind when running your apps
+
+#### Dynamic library loading
+In order for Go to find libvix when running your compiled binary, a govix path has to be added to the *LD_LIBRARY_PATH* environment variable. Example:
 
 * **OSX:** export DYLD_LIBRARY_PATH=${GOPATH}/src/github.com/c4milo/govix
 * **Linux:** export LD_LIBRARY_PATH=${GOPATH}/src/github.com/c4milo/govix
+* **Windows:** append the path to the PATH environment variable
 
 Be aware that the previous example assumes $GOPATH only has a path set.
+
+## Debugging
+### Enabling debug logs
+
+`echo "vix.debugLevel = \"9\"" >> ~/Library/Preferences/VMware\ Fusion/config`
+
+
+### Logs
+* **OSX:** `~/Library/Logs/VMware/*.log`
+* **Linux:** `/tmp/vmware-<username>/vix-<pid>.log`
+* **Windows:** `%TEMP%\vmware-<username>\vix-<pid>.log`
 
 
 ## VMware VIX EULA
