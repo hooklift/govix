@@ -59,8 +59,9 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "host.FindItems",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -117,8 +118,9 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 
 		if C.VIX_OK != err {
 			return nil, &VixError{
-				code: int(err & 0xFFFF),
-				text: C.GoString(C.Vix_GetErrorText(err, nil)),
+				operation: "host.OpenVM",
+				code:      int(err & 0xFFFF),
+				text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 			}
 		}
 	}
@@ -140,8 +142,9 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "host.OpenVM.get_vix_handle",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -197,8 +200,9 @@ func (h *Host) RegisterVm(vmxFile string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "host.RegisterVM",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -246,8 +250,9 @@ func (h *Host) UnregisterVm(vmxFile string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "host.UnregisterVM",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -315,8 +320,9 @@ func (h *Host) CopyFileToGuest(src string, guest *Guest, dest string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "host.CopyFileToGuest",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 

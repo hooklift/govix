@@ -26,8 +26,9 @@ func (g *Guest) SharedFoldersParentDir() (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.SharedFoldersParentDir",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -65,8 +66,9 @@ func (g *Guest) CopyFileToHost(guestpath, hostpath string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.CopyFileToHost",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -108,8 +110,9 @@ func (g *Guest) MkDir(path string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.MkDir",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -139,8 +142,9 @@ func (g *Guest) MkTemp() (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.MkTemp",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -179,8 +183,9 @@ func (g *Guest) RmDir(path string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.RmDir",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -216,8 +221,9 @@ func (g *Guest) RmFile(filepath string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.RmFile",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -256,8 +262,9 @@ func (g *Guest) IsDir(path string) (bool, error) {
 	err = C.is_file_or_dir(jobHandle, &result)
 	if C.VIX_OK != err {
 		return false, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.IsDir",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -302,8 +309,9 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 	err = C.is_file_or_dir(jobHandle, &result)
 	if C.VIX_OK != err {
 		return false, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.IsFile",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -355,8 +363,9 @@ func (g *Guest) FileInfo(filepath string) (*GuestFile, error) {
 	err = C.get_file_info(jobHandle, fsize, flags, modtime)
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.FileInfo",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -399,8 +408,9 @@ func (g *Guest) Kill(pid uint64) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.Kill",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -442,8 +452,9 @@ func (g *Guest) Ls(dir string) ([]*GuestFile, error) {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.Ls.ListDirectoryInGuest",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -459,8 +470,9 @@ func (g *Guest) Ls(dir string) ([]*GuestFile, error) {
 		err = C.get_guest_file(jobHandle, C.int(i), name, size, modtime, attrs)
 		if C.VIX_OK != err {
 			return nil, &VixError{
-				code: int(err & 0xFFFF),
-				text: C.GoString(C.Vix_GetErrorText(err, nil)),
+				operation: "guest.Ls.get_guest_file",
+				code:      int(err & 0xFFFF),
+				text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 			}
 		}
 
@@ -502,8 +514,9 @@ func (g *Guest) Ps() ([]*GuestProcess, error) {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.Ps",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -528,8 +541,9 @@ func (g *Guest) Ps() ([]*GuestProcess, error) {
 
 		if C.VIX_OK != err {
 			return nil, &VixError{
-				code: int(err & 0xFFFF),
-				text: C.GoString(C.Vix_GetErrorText(err, nil)),
+				operation: "guest.Ps.get_guest_process",
+				code:      int(err & 0xFFFF),
+				text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 			}
 		}
 
@@ -583,8 +597,9 @@ func (g *Guest) Logout() error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.Logout",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -674,8 +689,9 @@ func (g *Guest) RunProgram(path, args string, options RunProgramOption) (uint64,
 
 	if C.VIX_OK != err {
 		return 0, 0, 0, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.RunProgram",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -747,8 +763,9 @@ func (g *Guest) RunScript(shell, args string, options RunProgramOption) (uint64,
 
 	if C.VIX_OK != err {
 		return 0, 0, 0, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.RunScript.get_program_output",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -796,8 +813,9 @@ func (g *Guest) Mv(path1, path2 string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "guest.Mv",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 

@@ -7,6 +7,7 @@ package vix
 import "C"
 
 import (
+	"fmt"
 	"runtime"
 	"unsafe"
 )
@@ -343,8 +344,9 @@ func Connect(config ConnectConfig) (*Host, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			code: int(err & 0xFFFF),
-			text: C.GoString(C.Vix_GetErrorText(err, nil)),
+			operation: "vix.Connect",
+			code:      int(err & 0xFFFF),
+			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -365,10 +367,11 @@ func cleanupHost(host *Host) {
 }
 
 type VixError struct {
-	code int
-	text string
+	operation string
+	code      int
+	text      string
 }
 
 func (e *VixError) Error() string {
-	return e.text
+	return fmt.Sprintf("VIX Error: %s.\n  Code: %d\n  Operation: %s", e.text, e.code, e.operation)
 }
