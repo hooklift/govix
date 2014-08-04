@@ -10,6 +10,7 @@ import (
 	"math"
 	"runtime"
 	"strconv"
+	"time"
 	"unsafe"
 )
 
@@ -1775,43 +1776,47 @@ func (v *VM) InstallTools(options InstallToolsOption) error {
 //
 // Parameters:
 //
-// * timeout: The timeout in seconds. If VMware Tools has not started by
-//            this time, the operation completes with an error.
-//            If the value of this argument is zero or negative, then this
-//  		  operation will wait indefinitely until the VMware Tools start
-//            running in the guest operating system.
+//   timeout:
+//     The timeout in seconds. If VMware Tools has not started by
+//     this time, the operation completes with an error.
+//     If the value of this argument is zero or negative, then this
+//     operation will wait indefinitely until the VMware Tools start
+//     running in the guest operating system.
 //
 // Remarks:
 //
-// * This function signals the job when VMware Tools has successfully started
-//   in the guest operating system.
-//   VMware Tools is a collection of services that run in the guest.
-// * VMware Tools must be installed and running for some Vix functions to
-//   operate correctly.
-//   If VMware Tools is not installed in the guest operating system, or if the
-//   virtual machine
-//   is not powered on, this function reports an error.
-// * The ToolsState property of the virtual machine object is undefined until
-//   VM.WaitForToolsInGuest() reports that VMware Tools is running.
-// * This function should be called after calling any function that resets or
-//   reboots the state of the guest operating system, but before calling any
-//   functions that require VMware Tools to be running. Doing so assures that
-//   VMware Tools are once again up and running. Functions that reset the guest
-//   operating system in this way include:
-//   VM.PowerOn()
-//   VM.Reset()
-//   VM.RevertToSnapshot()
+//   * This function signals the job when VMware Tools has successfully started
+//     in the guest operating system.
+//     VMware Tools is a collection of services that run in the guest.
+//
+//   * VMware Tools must be installed and running for some Vix functions to
+//     operate correctly.
+//     If VMware Tools is not installed in the guest operating system, or if the
+//     virtual machine is not powered on, this function reports an error.
+//
+//   * The ToolsState property of the virtual machine object is undefined until
+//     VM.WaitForToolsInGuest() reports that VMware Tools is running.
+//
+//   * This function should be called after calling any function that resets or
+//     reboots the state of the guest operating system, but before calling any
+//     functions that require VMware Tools to be running. Doing so assures that
+//     VMware Tools are once again up and running. Functions that reset the guest
+//     operating system in this way include:
+//
+//     * VM.PowerOn()
+//     * VM.Reset()
+//     * VM.RevertToSnapshot()
 //
 // Since VMware Server 1.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
-func (v *VM) WaitForToolsInGuest(timeout uint) error {
+func (v *VM) WaitForToolsInGuest(timeout time.Duration) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
 	jobHandle = C.VixVM_WaitForToolsInGuest(v.handle,
-		C.int(timeout), // timeoutInSeconds
-		nil,            // callbackProc
-		nil)            // clientData
+		C.int(timeout.Seconds()), // timeoutInSeconds
+		nil, // callbackProc
+		nil) // clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
