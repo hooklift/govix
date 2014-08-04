@@ -317,39 +317,49 @@ func (v *VM) EnableSharedFolders(enabled bool) error {
 //
 // Parameters:
 //
-// guestpath: Specifies the guest path name of the new shared folder.
-// hostpath: Specifies the host path of the shared folder.
-// flags: The folder options.
+//   guestpath: Specifies the guest path name of the new shared folder.
+//   hostpath: Specifies the host path of the shared folder.
+//   flags: The folder options.
 //
 // Remarks:
 //
-// * This function creates a local mount point in the guest file system and
-//   mounts a shared folder exported by the host.
-// * Shared folders will only be accessible inside the guest operating system
-//   if shared folders are enabled for the virtual machine.
-//   See the documentation for VM.EnableSharedFolders().
-// * The folder options include:
-// 	 SHAREDFOLDER_WRITE_ACCESS - Allow write access.
-// * Only absolute paths should be used for files in the guest; the resolution
-//   of relative paths is not specified.
-// * The hostpath argument must specify a path to a directory that exists on the
-//   host, or an error will result.
-// * If a shared folder with the same name exists before calling this function,
-//   the job handle returned by this function will return VIX_E_ALREADY_EXISTS.
-// * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * When creating shared folders in a Windows guest, there might be a delay
-//   before contents of a shared folder are visible to functions such as
-//   Guest.IsFile() and Guest.RunProgram().
-// * Shared folders are not supported for the following guest operating
-//   systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered
-//   on with VMware Tools installed.
-// * To determine in which directory in the guest the shared folder will be,
-//   query Guest.SharedFoldersParentDir(). When the virtual machine is powered
-//   on and the VMware Tools are running, this property will contain the path to
-//   the parent directory of the shared folders for that virtual machine.
+//   * This function creates a local mount point in the guest file system and
+//     mounts a shared folder exported by the host.
+//
+//   * Shared folders will only be accessible inside the guest operating system
+//     if shared folders are enabled for the virtual machine.
+//     See the documentation for VM.EnableSharedFolders().
+//
+//   * The folder options include: SHAREDFOLDER_WRITE_ACCESS - Allow write access.
+//
+//   * Only absolute paths should be used for files in the guest; the resolution
+//     of relative paths is not specified.
+//
+//   * The hostpath argument must specify a path to a directory that exists on the
+//     host, or an error will result.
+//
+//   * If a shared folder with the same name exists before calling this function,
+//     the job handle returned by this function will return VIX_E_ALREADY_EXISTS.
+//
+//   * It is not necessary to call VM.LoginInGuest() before calling this function.
+//
+//   * When creating shared folders in a Windows guest, there might be a delay
+//     before contents of a shared folder are visible to functions such as
+//     Guest.IsFile() and Guest.RunProgram().
+//
+//   * Shared folders are not supported for the following guest operating
+//     systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+//
+//   * In this release, this function requires the virtual machine to be powered
+//     on with VMware Tools installed.
+//
+//   * To determine in which directory in the guest the shared folder will be,
+//     query Guest.SharedFoldersParentDir(). When the virtual machine is powered
+//     on and the VMware Tools are running, this property will contain the path to
+//     the parent directory of the shared folders for that virtual machine.
 //
 // Since VMware Workstation 6.0, not available on Server 2.0.
+//
 func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -383,24 +393,28 @@ func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOptio
 //
 // Parameters:
 //
-// * guestpath: Specifies the guest pathname of the shared folder to delete.
+//   guestpath: Specifies the guest pathname of the shared folder to delete.
 //
 // Remarks:
 //
-// * This function removes a shared folder in the virtual machine referenced by
-//   the VM object
-// * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * Shared folders are not supported for the following guest operating
-//   systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered
-//   on with VMware Tools installed.
-// * Depending on the behavior of the guest operating system, when removing
-//   shared folders, there might be a delay before the shared folder is no
-//   longer visible to programs running within the guest operating system and
-//   to functions such as Guest.IsFile()
+//   * This function removes a shared folder in the virtual machine referenced by
+//     the VM object
+//
+//   * It is not necessary to call VM.LoginInGuest() before calling this function.
+//
+//   * Shared folders are not supported for the following guest operating
+//     systems: Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+//
+//   * In this release, this function requires the virtual machine to be powered
+//     on with VMware Tools installed.
+//
+//   * Depending on the behavior of the guest operating system, when removing
+//     shared folders, there might be a delay before the shared folder is no
+//     longer visible to programs running within the guest operating system and
+//     to functions such as Guest.IsFile()
 //
 // Since VMware Workstation 6.0
-
+//
 func (v *VM) RemoveSharedFolder(guestpath string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -431,13 +445,15 @@ func (v *VM) RemoveSharedFolder(guestpath string) error {
 //
 // Remarks:
 //
-// * This function captures the current screen image and returns it as a
-//   []byte result.
-// * For security reasons, this function requires a successful call to
-//   VM.LoginInGuest() must be made.
+//   * This function captures the current screen image and returns it as a
+//     []byte result.
+//
+//   * For security reasons, this function requires a successful call to
+//     VM.LoginInGuest() must be made.
 //
 // Since VMware Workstation 6.5
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
+//
 func (v *VM) Screenshot() ([]byte, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -469,41 +485,48 @@ func (v *VM) Screenshot() ([]byte, error) {
 //
 // Parameters:
 //
-// cloneType:
-// Must be either CLONETYPE_FULL or CLONETYPE_LINKED.
-// * CLONETYPE_FULL - Creates a full, independent clone of the virtual machine.
-// * CLONETYPE_LINKED - Creates a linked clone, which is a copy of a virtual
-//                      machine that shares virtual disks with the parent
-//                      virtual machine in an ongoing manner.
-//                      This conserves disk space as long as the parent and
-//                      clone do not change too much from their original state.
+//   cloneType:
+//     Must be either CLONETYPE_FULL or CLONETYPE_LINKED.
+//       * CLONETYPE_FULL - Creates a full, independent clone of the virtual machine.
+//       * CLONETYPE_LINKED - Creates a linked clone, which is a copy of a virtual
+//         machine that shares virtual disks with the parent
+//         virtual machine in an ongoing manner.
+//         This conserves disk space as long as the parent and
+//         clone do not change too much from their original state.
 //
-// destVmxFile:
-// The path name of the virtual machine configuration file that will
-// be created for the virtual machine clone produced by this operation.
-// This should be a full absolute path name, with directory names delineated
-// according to host system convention: \ for Windows and / for Linux.
+//   destVmxFile:
+//     The path name of the virtual machine configuration file that will
+//     be created for the virtual machine clone produced by this operation.
+//     This should be a full absolute path name, with directory names delineated
+//     according to host system convention: \ for Windows and / for Linux.
 //
 // Remarks:
 //
-// * The function returns a new VM instance which is a clone of its parent VM.
-// * It is not possible to create a full clone of a powered on virtual machine.
-//   You must power off or suspend a virtual machine before creating a full
-//   clone of that machine.
-// * With a suspended virtual machine, requesting a linked clone results in
-//   error 3007 VIX_E_VM_IS_RUNNING.
-//   Suspended virtual machines retain memory state, so proceeding with a
-//   linked clone could cause loss of data.
-// * A linked clone must have access to the parent's virtual disks. Without
-//   such access, you cannot use a linked clone
-//   at all because its file system will likely be incomplete or corrupt.
-// * Deleting a virtual machine that is the parent of a linked clone renders
-//   the linked clone useless.
-// * Because a full clone does not share virtual disks with the parent virtual
-//   machine, full clones generally perform better than linked clones.
-//   However, full clones take longer to create than linked clones. Creating a
-//   full clone can take several minutes if the files involved are large.
-// * This function is not supported when using the VMWARE_PLAYER provider.
+//   * The function returns a new VM instance which is a clone of its parent VM.
+//
+//   * It is not possible to create a full clone of a powered on virtual machine.
+//     You must power off or suspend a virtual machine before creating a full
+//     clone of that machine.
+//
+//   * With a suspended virtual machine, requesting a linked clone results in
+//     error 3007 VIX_E_VM_IS_RUNNING.
+//     Suspended virtual machines retain memory state, so proceeding with a
+//     linked clone could cause loss of data.
+//
+//   * A linked clone must have access to the parent's virtual disks. Without
+//     such access, you cannot use a linked clone
+//     at all because its file system will likely be incomplete or corrupt.
+//
+//   * Deleting a virtual machine that is the parent of a linked clone renders
+//     the linked clone useless.
+//
+//   * Because a full clone does not share virtual disks with the parent virtual
+//     machine, full clones generally perform better than linked clones.
+//     However, full clones take longer to create than linked clones. Creating a
+//     full clone can take several minutes if the files involved are large.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider.
+//
 func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var clonedHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -557,45 +580,53 @@ func cleanupVM(v *VM) {
 //
 // Parameters:
 //
-// name:
-// A user-defined name for the snapshot; need not be unique.
+//   name:
+//     A user-defined name for the snapshot; need not be unique.
 //
-// description:
-// A user-defined description for the snapshot.
+//   description:
+//     A user-defined description for the snapshot.
 //
-// options:
-// Flags to specify how the snapshot should be created. Any combination of the
-// following or 0 to exclude memory:
-//    * SNAPSHOT_INCLUDE_MEMORY - Captures the full state of a running virtual
-//      machine, including the memory.
+//   options:
+//     Flags to specify how the snapshot should be created. Any combination of the
+//     following or 0 to exclude memory:
+//       * SNAPSHOT_INCLUDE_MEMORY - Captures the full state of a running virtual
+//         machine, including the memory.
 //
 // Remarks:
 //
-// * This function creates a child snapshot of the current snapshot.
-// * If a virtual machine is suspended, you cannot snapshot it more than once.
-// * If a powered-on virtual machine gets a snapshot created with option 0
-//   (exclude memory), the power state is not saved, so reverting to the
-//   snapshot sets powered-off state.
-// * The 'name' and 'description' parameters can be set but not retrieved
-//   using the VIX API.
-// * VMware Server supports only a single snapshot for each virtual machine.
-//   The following considerations apply to VMware Server:
-//    * If you call this function a second time for the same virtual machine
-//      without first deleting the snapshot,
-//      the second call will overwrite the previous snapshot.
-//    * A virtual machine imported to VMware Server from another VMware product
-//      might have more than one snapshot at the time it is imported. In that
-//      case, you can use this function to add a new snapshot to the series.
-// * Starting in VMware Workstation 6.5, snapshot operations are allowed on
-//   virtual machines that are part of a team.
-//   Previously, this operation failed with error code
-//   VIX_PROPERTY_VM_IN_VMTEAM. Team members snapshot independently so they can
-//   have different and inconsistent snapshot states.
-// * This function is not supported when using the VMWARE_PLAYER provider.
-// * If the virtual machine is open and powered off in the UI, this function now
-//   closes the virtual machine in the UI before creating the snapshot.
+//   * This function creates a child snapshot of the current snapshot.
+//
+//   * If a virtual machine is suspended, you cannot snapshot it more than once.
+//
+//   * If a powered-on virtual machine gets a snapshot created with option 0
+//     (exclude memory), the power state is not saved, so reverting to the
+//     snapshot sets powered-off state.
+//
+//   * The 'name' and 'description' parameters can be set but not retrieved
+//     using the VIX API.
+//
+//   * VMware Server supports only a single snapshot for each virtual machine.
+//     The following considerations apply to VMware Server:
+//      * If you call this function a second time for the same virtual machine
+//        without first deleting the snapshot,
+//        the second call will overwrite the previous snapshot.
+//      * A virtual machine imported to VMware Server from another VMware product
+//        might have more than one snapshot at the time it is imported. In that
+//        case, you can use this function to add a new snapshot to the series.
+//
+//   * Starting in VMware Workstation 6.5, snapshot operations are allowed on
+//     virtual machines that are part of a team.
+//     Previously, this operation failed with error code
+//     VIX_PROPERTY_VM_IN_VMTEAM. Team members snapshot independently so they can
+//     have different and inconsistent snapshot states.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider.
+//
+//   * If the virtual machine is open and powered off in the UI, this function now
+//     closes the virtual machine in the UI before creating the snapshot.
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOption) (*Snapshot, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -640,27 +671,32 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 //
 // Parameters:
 //
-// * snapshot: A Snapshot instance. Call VM.RootSnapshot() to get a snapshot
-//             instance.
+//   snapshot:
+//     A Snapshot instance. Call VM.RootSnapshot() to get a snapshot instance.
 //
 // Remarks:
 //
-// * This function deletes all saved states for the specified snapshot. If the
-//   snapshot was based on another snapshot, the base snapshot becomes the new
-//   root snapshot.
-// * The VMware Server release of the VIX API can manage only a single snapshot
-//   for each virtual machine. A virtual machine imported from another VMware
-//   product can have more than one snapshot at the time it is imported. In that
-//   case, you can delete only a snapshot subsequently added using the VIX API.
-// * Starting in VMware Workstation 6.5, snapshot operations are allowed on
-//   virtual machines that are part of a team. Previously, this operation
-//   failed with error code VIX_PROPERTY_VM_IN_VMTEAM. Team members snapshot
-//   independently so they can have different and inconsistent snapshot states.
-// * This function is not supported when using the VMWARE_PLAYER provider
-// * If the virtual machine is open and powered off in the UI, this function may
-//   close the virtual machine in the UI before deleting the snapshot.
+//   * This function deletes all saved states for the specified snapshot. If the
+//     snapshot was based on another snapshot, the base snapshot becomes the new
+//     root snapshot.
+//
+//   * The VMware Server release of the VIX API can manage only a single snapshot
+//     for each virtual machine. A virtual machine imported from another VMware
+//     product can have more than one snapshot at the time it is imported. In that
+//     case, you can delete only a snapshot subsequently added using the VIX API.
+//
+//   * Starting in VMware Workstation 6.5, snapshot operations are allowed on
+//     virtual machines that are part of a team. Previously, this operation
+//     failed with error code VIX_PROPERTY_VM_IN_VMTEAM. Team members snapshot
+//     independently so they can have different and inconsistent snapshot states.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider
+//
+//   * If the virtual machine is open and powered off in the UI, this function may
+//     close the virtual machine in the UI before deleting the snapshot.
 //
 // Since VMware Server 1.0
+//
 func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -689,28 +725,31 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 //
 // Parameters:
 //
-// options:
-// For VMware Server 2.0 and ESX, this value must be VMDELETE_DISK_FILES.
-// For all other versions it can be either 0 or VMDELETE_DISK_FILES.
-// When option is VIX_VMDELETE_DISK_FILES, deletes all associated files.
-// When option is 0, does not delete *.vmdk virtual disk file(s).
+//   options:
+//     For VMware Server 2.0 and ESX, this value must be VMDELETE_DISK_FILES.
+//     For all other versions it can be either 0 or VMDELETE_DISK_FILES.
+//     When option is VIX_VMDELETE_DISK_FILES, deletes all associated files.
+//     When option is 0, does not delete *.vmdk virtual disk file(s).
 //
 // Remarks:
 //
-// * This function permanently deletes a virtual machine from your host system.
-//    You can accomplish the same effect by deleting all virtual machine files
-//    using the host file system. This function simplifies the task by deleting
-//    all VMware files in a single function call.
-//    If a deleteOptions value of 0 is specified, the virtual disk (vmdk) files
-//    will not be deleted.
-//    This function does not delete other user files in the virtual machine
-//    folder.
-// * This function is successful only if the virtual machine is powered off or
-//   suspended.
-// * Deleting a virtual machine that is the parent of a linked clone renders
-//   the linked clone useless.
+//   * This function permanently deletes a virtual machine from your host system.
+//     You can accomplish the same effect by deleting all virtual machine files
+//     using the host file system. This function simplifies the task by deleting
+//     all VMware files in a single function call.
+//     If a deleteOptions value of 0 is specified, the virtual disk (vmdk) files
+//     will not be deleted.
+//     This function does not delete other user files in the virtual machine
+//     folder.
+//
+//   * This function is successful only if the virtual machine is powered off or
+//     suspended.
+//
+//   * Deleting a virtual machine that is the parent of a linked clone renders
+//     the linked clone useless.
 //
 // since VMware Server 1.0
+//
 func (v *VM) Delete(options VmDeleteOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -737,11 +776,13 @@ func (v *VM) Delete(options VmDeleteOption) error {
 //
 // Remarks:
 //
-// * This function returns the handle of the current active snapshot belonging
-//   to the virtual machine.
-// * This function is not supported when using the VMWARE_PLAYER provider
+//   * This function returns the handle of the current active snapshot belonging
+//     to the virtual machine.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) CurrentSnapshot() (*Snapshot, error) {
 	var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -766,23 +807,27 @@ func (v *VM) CurrentSnapshot() (*Snapshot, error) {
 //
 // Parameters:
 //
-// Name:
-// Identifies a snapshot name.
+//   name:
+//     Identifies a snapshot name.
 //
 // Remarks:
 //
-// * When the snapshot name is a duplicate, it returns error 13017
-//   VIX_E_SNAPSHOT_NONUNIQUE_NAME.
-// * When there are multiple snapshots with the same name, or the same path to
-//   that name, you cannot specify a unique name, but you can to use the UI to
-//   rename duplicates.
-// * You can specify the snapshot name as a path using '/' or '\\' as path
-//   separators, including snapshots in the tree above the named snapshot,
-//   for example 'a/b/c' or 'x/x'. Do not mix '/' and '\\' in the same path
-//   expression.
-// * This function is not supported when using the VMWARE_PLAYER provider.
+//   * When the snapshot name is a duplicate, it returns error 13017
+//     VIX_E_SNAPSHOT_NONUNIQUE_NAME.
+//
+//   * When there are multiple snapshots with the same name, or the same path to
+//     that name, you cannot specify a unique name, but you can to use the UI to
+//     rename duplicates.
+//
+//   * You can specify the snapshot name as a path using '/' or '\\' as path
+//     separators, including snapshots in the tree above the named snapshot,
+//     for example 'a/b/c' or 'x/x'. Do not mix '/' and '\\' in the same path
+//     expression.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider.
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) SnapshotByName(name string) (*Snapshot, error) {
 	var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -811,20 +856,23 @@ func (v *VM) SnapshotByName(name string) (*Snapshot, error) {
 //
 // Remarks:
 //
-// * This function returns the number of top-level (root) snapshots belonging to
-//   a virtual machine.
-//   A top-level snapshot is one that is not based on any previous snapshot.
-//   If the virtual machine has more than one snapshot, the snapshots can be a
-//   sequence in which each snapshot is based on the previous one, leaving only
-//   a single top-level snapshot.
-//   However, if applications create branched trees of snapshots, a single
-//   virtual machine can have several top-level snapshots.
-// * VMware Server can manage only a single snapshot for each virtual machine.
-//   All other snapshots in a sequence are ignored. The return value is always
-//   0 or 1.
-// * This function is not supported when using the VMWARE_PLAYER provider
+//   * This function returns the number of top-level (root) snapshots belonging to
+//     a virtual machine.
+//     A top-level snapshot is one that is not based on any previous snapshot.
+//     If the virtual machine has more than one snapshot, the snapshots can be a
+//     sequence in which each snapshot is based on the previous one, leaving only
+//     a single top-level snapshot.
+//     However, if applications create branched trees of snapshots, a single
+//     virtual machine can have several top-level snapshots.
+//
+//   * VMware Server can manage only a single snapshot for each virtual machine.
+//     All other snapshots in a sequence are ignored. The return value is always
+//     0 or 1.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) TotalRootSnapshots() (int, error) {
 	var result C.int
 	var err C.VixError = C.VIX_OK
@@ -846,15 +894,19 @@ func (v *VM) TotalRootSnapshots() (int, error) {
 //
 // Remarks:
 //
-// * This function returns the number of shared folders mounted in the virtual
-//   machine.
-// * It is not necessary to call VM.LoginInGuest() before calling this function.
-// * Shared folders are not supported for the following guest operating systems:
-//   Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
-// * In this release, this function requires the virtual machine to be powered
-//   on with VMware Tools installed.
+//   * This function returns the number of shared folders mounted in the virtual
+//     machine.
+//
+//   * It is not necessary to call VM.LoginInGuest() before calling this function.
+//
+//   * Shared folders are not supported for the following guest operating systems:
+//     Windows ME, Windows 98, Windows 95, Windows 3.x, and DOS.
+//
+//   * In this release, this function requires the virtual machine to be powered
+//     on with VMware Tools installed.
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) TotalSharedFolders() (int, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -881,18 +933,20 @@ func (v *VM) TotalSharedFolders() (int, error) {
 //
 // Parameters:
 //
-// Index:
-// Identifies a root snapshot. See below for range of values.
+//   index: Identifies a root snapshot. See below for range of values.
 //
 // Remarks:
 //
-// * Snapshots are indexed from 0 to n-1, where n is the number of root
-//   snapshots. Use the function VM.TotalRootSnapshots to get the value of n.
-// * VMware Server can manage only a single snapshot for each virtual machine.
-//   The value of index can only be 0.
-// * This function is not supported when using the VMWARE_PLAYER provider
+//   * Snapshots are indexed from 0 to n-1, where n is the number of root
+//     snapshots. Use the function VM.TotalRootSnapshots to get the value of n.
+//
+//   * VMware Server can manage only a single snapshot for each virtual machine.
+//     The value of index can only be 0.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Server 1.0
+//
 func (v *VM) RootSnapshot(index int) (*Snapshot, error) {
 	var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -939,6 +993,7 @@ func (v *VM) RootSnapshot(index int) (*Snapshot, error) {
 //     on with VMware Tools installed.
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -989,6 +1044,7 @@ func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOpt
 //     on with VMware Tools installed.
 //
 // Since VMware Workstation 6.0
+//
 func (v *VM) SharedFolderState(index int) (string, string, int, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1023,24 +1079,31 @@ func (v *VM) SharedFolderState(index int) (string, string, int, error) {
 // This function pauses a virtual machine. See Remarks section for pause
 // behavior when used with different operations.
 //
-// * This stops execution of the virtual machine.
-// * Functions that invoke guest operations should not be called when the
-//   virtual machine is paused.
-// * Call VM.Resume() to continue execution of the virtual machine.
-// * Calling VM.Reset(), VM.PowerOff(), and VM.Suspend() will successfully
-//   work when paused. The pause state is not preserved in a suspended virtual
-//   machine; a subsequent VM.PowerOn() will not remember the previous
-//   pause state.
-// * This function is not supported when using the VMWARE_PLAYER provider
+// Remarks:
+//
+//   * This stops execution of the virtual machine.
+//
+//   * Functions that invoke guest operations should not be called when the
+//     virtual machine is paused.
+//
+//   * Call VM.Resume() to continue execution of the virtual machine.
+//
+//   * Calling VM.Reset(), VM.PowerOff(), and VM.Suspend() will successfully
+//     work when paused. The pause state is not preserved in a suspended virtual
+//     machine; a subsequent VM.PowerOn() will not remember the previous pause
+//     state.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.5.
+//
 func (v *VM) Pause() error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
-	//Commented code is here to have implementation clues
-	//about how to return the resulting
-	//snapshot object of the pause operation, if needed.
+	// Commented code is here to have implementation clues
+	// about how to return the resulting
+	// snapshot object of the pause operation, if needed.
 	//
-	//var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
+	// var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
 	jobHandle = C.VixVM_Pause(v.handle,
@@ -1075,12 +1138,15 @@ func (v *VM) Pause() error {
 //
 // Remarks:
 //
-// * This operation continues execution of a virtual machine that was stopped
-//   using VM.Pause().
-// * Refer to VM.Pause() for pause/unpause behavior with different operations.
-// * This function is not supported when using the VMWARE_PLAYER provider
+//   * This operation continues execution of a virtual machine that was stopped
+//     using VM.Pause().
+//
+//   * Refer to VM.Pause() for pause/unpause behavior with different operations.
+//
+//   * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.5
+//
 func (v *VM) Resume() error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	//var snapshotHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -1118,34 +1184,39 @@ func (v *VM) Resume() error {
 //
 // Parameters:
 //
-// options:
-// Set of VMPowerOption flags to consider when powering off the virtual machine.
+//   options:
+//     Set of VMPowerOption flags to consider when powering off the virtual machine.
 //
 // Remarks:
-// * If you call this function while the virtual machine is suspended or powered
-//   off, the operation returns a VIX_E_VM_NOT_RUNNING error.
-//   If suspended, the virtual machine remains suspended and is not powered off.
-//   If powered off, you can safely ignore the error.
-// * If you pass VMPOWEROP_NORMAL as an option, the virtual machine is powered
-//   off at the hardware level. Any state of the guest that was not committed
-//   to disk will be lost.
-// * If you pass VMPOWEROP_FROM_GUEST as an option, the function tries to power
-//   off the guest OS, ensuring a clean shutdown of the guest. This option
-//   requires that VMware Tools be installed and running in the guest.
-// * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest()
-//   returns, there is a short delay before VMPOWEROP_FROM_GUEST becomes
-//   available.
-//   During this time a job may return error 3009,
-//   VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
-//   As a workaround, add a short sleep after the WaitForTools call.
-// * On a Solaris guest with UFS file system on the root partition, the
-//   VMPOWEROP_NORMAL parameter causes an error screen at next power on, which
-//   requires user intervention to update the Solaris boot archive by logging
-//   into the failsafe boot session from the GRUB menu. Hence, although UFS file
-//   systems are supported, VMware recommends using the ZFS file system for
-//   Solaris guests.
+//   * If you call this function while the virtual machine is suspended or powered
+//     off, the operation returns a VIX_E_VM_NOT_RUNNING error.
+//     If suspended, the virtual machine remains suspended and is not powered off.
+//     If powered off, you can safely ignore the error.
+//
+//   * If you pass VMPOWEROP_NORMAL as an option, the virtual machine is powered
+//     off at the hardware level. Any state of the guest that was not committed
+//     to disk will be lost.
+//
+//   * If you pass VMPOWEROP_FROM_GUEST as an option, the function tries to power
+//     off the guest OS, ensuring a clean shutdown of the guest. This option
+//     requires that VMware Tools be installed and running in the guest.
+//
+//   * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest()
+//     returns, there is a short delay before VMPOWEROP_FROM_GUEST becomes
+//     available.
+//     During this time a job may return error 3009,
+//     VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
+//     As a workaround, add a short sleep after the WaitForTools call.
+//
+//   * On a Solaris guest with UFS file system on the root partition, the
+//     VMPOWEROP_NORMAL parameter causes an error screen at next power on, which
+//     requires user intervention to update the Solaris boot archive by logging
+//     into the failsafe boot session from the GRUB menu. Hence, although UFS file
+//     systems are supported, VMware recommends using the ZFS file system for
+//     Solaris guests.
 //
 // Since VMware Server 1.0
+//
 func (v *VM) PowerOff(options VMPowerOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1212,6 +1283,7 @@ func (v *VM) PowerOff(options VMPowerOption) error {
 //     VIX_E_NOT_SUPPORTED.
 //
 // Since VMware Server 1.0
+//
 func (v *VM) PowerOn(options VMPowerOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1242,32 +1314,39 @@ func (v *VM) PowerOn(options VMPowerOption) error {
 //
 // Parameters:
 //
-// options: Must be VMPOWEROP_NORMAL or VMPOWEROP_FROM_GUEST.
+//   options: Must be VMPOWEROP_NORMAL or VMPOWEROP_FROM_GUEST.
 //
 // Remarks:
-// * If the virtual machine is not powered on when you call this function, it
-//   returns an error.
-// * If you pass VMPOWEROP_NORMAL as an option, this function is the equivalent
-//   of pressing the reset button on a physical machine.
-// * If you pass VMPOWEROP_FROM_GUEST as an option, this function tries to reset
-//   the guest OS, ensuring a clean shutdown of the guest.
-//   This option requires that the VMware Tools be installed and running in the
-//   guest.
-// * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest()
-//   returns, there is a short delay before VMPOWEROP_FROM_GUEST becomes
-//   available. During this time the function may return error 3009,
-//   VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
-//   As a workaround, add a short sleep after the WaitForTools call.
-// * After reset, you must call VM.WaitForToolsInGuest() before executing guest
-//   operations or querying guest properties.
-// * On a Solaris guest with UFS file system on the root partition, the
-//   VMPOWEROP_NORMAL parameter causes an error screen at next power on, which
-//   requires user intervention to update the Solaris boot archive by logging
-//   into the failsafe boot session from the GRUB menu. Hence, although UFS file
-//   systems are supported, VMware recommends using the ZFS file system for
-//   Solaris guests.
+//
+//   * If the virtual machine is not powered on when you call this function, it
+//     returns an error.
+//
+//   * If you pass VMPOWEROP_NORMAL as an option, this function is the equivalent
+//     of pressing the reset button on a physical machine.
+//
+//   * If you pass VMPOWEROP_FROM_GUEST as an option, this function tries to reset
+//     the guest OS, ensuring a clean shutdown of the guest.
+//     This option requires that the VMware Tools be installed and running in the
+//     guest.
+//
+//   * After VMware Tools begin running in the guest, and VM.WaitForToolsInGuest()
+//     returns, there is a short delay before VMPOWEROP_FROM_GUEST becomes
+//     available. During this time the function may return error 3009,
+//     VIX_E_POWEROP_SCRIPTS_NOT_AVAILABLE.
+//     As a workaround, add a short sleep after the WaitForTools call.
+//
+//   * After reset, you must call VM.WaitForToolsInGuest() before executing guest
+//     operations or querying guest properties.
+//
+//   * On a Solaris guest with UFS file system on the root partition, the
+//     VMPOWEROP_NORMAL parameter causes an error screen at next power on, which
+//     requires user intervention to update the Solaris boot archive by logging
+//     into the failsafe boot session from the GRUB menu. Hence, although UFS file
+//     systems are supported, VMware recommends using the ZFS file system for
+//     Solaris guests.
 //
 // Since VMware Server 1.0
+//
 func (v *VM) Reset(options VMPowerOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1297,11 +1376,13 @@ func (v *VM) Reset(options VMPowerOption) error {
 //
 // Remarks:
 //
-// * If the virtual machine is not powered on when you call this function, the
-//   function returns the error VIX_E_VM_NOT_RUNNING.
-// * Call VM.PowerOn() to resume running a suspended virtual machine.
+//   * If the virtual machine is not powered on when you call this function, the
+//     function returns the error VIX_E_VM_NOT_RUNNING.
+//
+//   * Call VM.PowerOn() to resume running a suspended virtual machine.
 //
 // Since VMware Server 1.0
+//
 func (v *VM) Suspend() error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1333,38 +1414,40 @@ func (v *VM) Suspend() error {
 //
 // Parameters:
 //
-// varType: The type of variable to read. The currently supported values are:
-// 		* VM_GUEST_VARIABLE - 	A "Guest Variable". This is a runtime-only
-// 								value; it is never stored persistently.
-// 								This is the same guest variable that is exposed
-// 								through the VMControl APIs, and is a simple way
-// 								to pass runtime values in and out of the guest.
-// 		* VM_CONFIG_RUNTIME_ONLY - 	The configuration state of the virtual
-// 									machine. This is the .vmx file that is
-//									stored on the host. You can read this and
-// 									it will return the persistent data. If you
-// 									write to this, it will only be a runtime
-//									change, so changes will be lost when the VM
-//									powers off.
-// 		* GUEST_ENVIRONMENT_VARIABLE - 	An environment variable in the guest of
-//										the VM. On a Windows NT series guest,
-//										writing these values is saved
-//										persistently so they are immediately
-//										visible to every process.
-//										On a Linux or Windows 9X guest, writing
-//										these values is not persistent so they
-//										are only visible to the VMware tools
-//										process.
+//   varType:
+//     The type of variable to read. The currently supported values are:
 //
-// name: The name of the variable.
+//       * VM_GUEST_VARIABLE:
+//         A "Guest Variable". This is a runtime-only
+//         value; it is never stored persistently. This is the same guest
+//         variable that is exposed through the VMControl APIs, and is a simple
+//         way to pass runtime values in and out of the guest.
+//
+//       * VM_CONFIG_RUNTIME_ONLY:
+//         The configuration state of the virtual machine. This is the .vmx file
+//         that is stored on the host. You can read this and it will return the
+//         persistent data. If you write to this, it will only be a runtime
+//         change, so changes will be lost when the VM powers off.
+//
+//       * GUEST_ENVIRONMENT_VARIABLE:
+//         An environment variable in the guest of the VM. On a Windows NT series
+//         guest, writing these values is saved persistently so they are immediately
+//         visible to every process.
+//         On a Linux or Windows 9X guest, writing these values is not persistent
+//         so they are only visible to the VMware tools process.
+//
+//   name: The name of the variable.
 //
 // Remarks:
-// * You must call VM.LoginInGuest() before calling this function to read a
-//   GUEST_ENVIRONMENT_VARIABLE value.
-//   You do not have to call VM.LoginInGuest() to use this function to read a
-//   VM_GUEST_VARIABLE or a VVM_CONFIG_RUNTIME_ONLY value.
+//
+//   * You must call VM.LoginInGuest() before calling this function to read a
+//     GUEST_ENVIRONMENT_VARIABLE value.
+//
+//   * You do not have to call VM.LoginInGuest() to use this function to read a
+//     VM_GUEST_VARIABLE or a VVM_CONFIG_RUNTIME_ONLY value.
 //
 // Since Workstation 6.0
+//
 func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
@@ -1489,15 +1572,15 @@ func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
 //
 // Parameters:
 //
-// snapshot: A Snapshot instance. Call VVM.GetRootSnapshot() to get a snapshot
-// 			 instance.
-// options: Any applicable VMPowerOption. If the virtual machine was powered on
-//          when the snapshot was created, then this will determine how the
-// 			virtual machine is powered back on. To prevent the virtual machine
-// 			from being powered on regardless of the power state when the
-// 			snapshot was created, use the  VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON
-//			flag. VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is mutually exclusive
-// 			to all other VMPowerOpOptions.
+//   snapshot: A Snapshot instance. Call VVM.GetRootSnapshot() to get a snapshot
+// 			   instance.
+//   options: Any applicable VMPowerOption. If the virtual machine was powered on
+//            when the snapshot was created, then this will determine how the
+// 			  virtual machine is powered back on. To prevent the virtual machine
+// 			  from being powered on regardless of the power state when the
+// 			  snapshot was created, use the  VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON
+//			  flag. VMPOWEROP_SUPPRESS_SNAPSHOT_POWERON is mutually exclusive
+// 			  to all other VMPowerOpOptions.
 //
 // Remarks:
 //
