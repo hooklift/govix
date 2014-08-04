@@ -373,5 +373,5 @@ type VixError struct {
 }
 
 func (e *VixError) Error() string {
-	return fmt.Sprintf("VIX Error: %s.\n  Code: %d\n  Operation: %s", e.text, e.code, e.operation)
+	return fmt.Sprintf("VIX Error: %s, code: %d, operation: %s", e.text, e.code, e.operation)
 }
