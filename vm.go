@@ -1478,13 +1478,13 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 //       it is never stored persistently. This is the same guest variable that
 //       is exposed through the VMControl APIs, and is a simple way to
 //       pass runtime values in and out of the guest.
-
+//
 //     * VM_CONFIG_RUNTIME_ONLY: The configuration state of the virtual
 //       machine. This is the .vmx file that is stored on the host.
 //       You can read this and it will return the persistent data. If you write
 //       to this, it will only be a runtime change, so changes will be lost
 //       when the VM powers off. Not supported on ESX hosts.
-
+//
 //     * GUEST_ENVIRONMENT_VARIABLE: An environment variable in the guest of
 //       the VM. On a Windows NT series guest, writing these values is saved
 //       persistently so they are immediately visible to every process.
@@ -1937,8 +1937,9 @@ func (v *VM) changeVmxSetting(name string, value string) error {
 
 	if isVmRunning {
 		return &VixError{
-			code: 100000,
-			text: "The VM has to be powered off in order to change its vmx settings",
+			operation: "vm.changeVmxSetting",
+			code:      100000,
+			text:      "The VM has to be powered off in order to change its vmx settings",
 		}
 	}
 
@@ -1967,6 +1968,10 @@ func (v *VM) changeVmxSetting(name string, value string) error {
 // VM has to be powered off in order to change
 // this parameter
 func (v *VM) SetMemorySize(size uint) error {
+	if size == 0 {
+		size = 4
+	}
+
 	// Makes sure memory size is divisible by 4, otherwise VMware is going to
 	// silently fail, cancelling vix operations.
 	if size%4 != 0 {
@@ -1982,6 +1987,9 @@ func (v *VM) SetMemorySize(size uint) error {
 // VM has to be powered off in order to change
 // this parameter
 func (v *VM) SetNumberVcpus(vcpus uint8) error {
+	if vcpus < 1 {
+		vcpus = 1
+	}
 	numvcpus := strconv.Itoa(int(vcpus))
 	return v.changeVmxSetting("numvcpus", numvcpus)
 }
@@ -1991,9 +1999,18 @@ func (v *VM) SetDisplayName(name string) error {
 	return v.changeVmxSetting("displayName", name)
 }
 
+// Gets virtual machine name
+func (v *VM) DisplayName() (string, error) {
+	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "displayName")
+}
+
 // Sets annotations for the virtual machine
 func (v *VM) SetAnnotation(text string) error {
 	return v.changeVmxSetting("annotation", text)
+}
+
+func (v *VM) Annotation() (string, error) {
+	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "annotation")
 }
 
 // func (v *VM) SetVirtualHwVersion(version string) error {
