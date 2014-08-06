@@ -185,8 +185,8 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 
 	if isVmRunning {
 		return &VixError{
-			code: 100000,
-			text: "The VM has to be powered off in order to change its vmx settings",
+			Code: 100000,
+			Text: "The VM has to be powered off in order to change its vmx settings",
 		}
 	}
 
@@ -214,8 +214,9 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 
 		if hwversion < 7 {
 			return &VixError{
-				code: 100001,
-				text: fmt.Sprintf("Virtual hardware version needs to be 7 or higher in order to use vmxnet3. Current hardware version: %d", hwversion),
+				Operation: "vm.AddNetworkAdapter",
+				Code:      100001,
+				Text:      fmt.Sprintf("Virtual hardware version needs to be 7 or higher in order to use vmxnet3. Current hardware version: %d", hwversion),
 			}
 		}
 
@@ -237,16 +238,18 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 
 	if adapter.LinkStatePropagation && (adapter.ConnType != NETWORK_BRIDGED) {
 		return &VixError{
-			code: 100003,
-			text: "Link state propagation is only permitted for bridged networks",
+			Operation: "vm.AddNetworkAdapter",
+			Code:      100003,
+			Text:      "Link state propagation is only permitted for bridged networks",
 		}
 	}
 
 	if adapter.MacAddrType == NETWORK_MACADDRESSTYPE_STATIC {
 		if !strings.HasPrefix(adapter.MacAddress.String(), "00:50:56") {
 			return &VixError{
-				code: 100004,
-				text: "Static MAC addresses have to start with VMware officially assigned prefix: 00:50:56",
+				Operation: "vm.AddNetworkAdapter",
+				Code:      100004,
+				Text:      "Static MAC addresses have to start with VMware officially assigned prefix: 00:50:56",
 			}
 		}
 	}
@@ -290,8 +293,9 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 	if adapter.ConnType == NETWORK_CUSTOM {
 		if !ExistVSwitch(adapter.VSwitch.id) {
 			return &VixError{
-				code: 100005,
-				text: "VSwitch " + adapter.VSwitch.id + " does not exist",
+				Operation: "vm.AddNetworkAdapter",
+				Code:      100005,
+				Text:      "VSwitch " + adapter.VSwitch.id + " does not exist",
 			}
 		}
 		vmx[prefix+".vnet"] = string(adapter.VSwitch.id)
@@ -363,8 +367,9 @@ func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 
 	if isVmRunning {
 		return &VixError{
-			code: 100000,
-			text: "The VM has to be powered off in order to change its vmx settings",
+			Operation: "vm.RemoveNetworkAdapter",
+			Code:      100000,
+			Text:      "The VM has to be powered off in order to change its vmx settings",
 		}
 	}
 

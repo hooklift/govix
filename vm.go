@@ -31,9 +31,9 @@ func (v *VM) Vcpus() (uint8, error) {
 
 	if C.VIX_OK != err {
 		return 0, &VixError{
-			operation: "vm.Vcpus",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Vcpus",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -53,9 +53,9 @@ func (v *VM) VmxPath() (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			operation: "vm.VmxPath",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.VmxPath",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -75,9 +75,9 @@ func (v *VM) VmTeamPath() (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			operation: "vm.VmTeamPath",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.VmTeamPath",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -95,9 +95,9 @@ func (v *VM) MemorySize() (uint, error) {
 
 	if C.VIX_OK != err {
 		return 0, &VixError{
-			operation: "vm.MemorySize",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.MemorySize",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -114,9 +114,9 @@ func (v *VM) ReadOnly() (bool, error) {
 
 	if C.VIX_OK != err {
 		return false, &VixError{
-			operation: "vm.ReadOnly",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.ReadOnly",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -138,9 +138,9 @@ func (v *VM) InVmTeam() (bool, error) {
 
 	if C.VIX_OK != err {
 		return false, &VixError{
-			operation: "vm.InVmTeam",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.InVmTeam",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -162,9 +162,9 @@ func (v *VM) PowerState() (VMPowerState, error) {
 
 	if C.VIX_OK != err {
 		return VMPowerState(0x0), &VixError{
-			operation: "vm.PowerState",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.PowerState",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -182,9 +182,9 @@ func (v *VM) ToolState() (GuestToolsState, error) {
 
 	if C.VIX_OK != err {
 		return TOOLSSTATE_UNKNOWN, &VixError{
-			operation: "vm.ToolState",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.ToolState",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -202,9 +202,9 @@ func (v *VM) IsRunning() (bool, error) {
 
 	if C.VIX_OK != err {
 		return false, &VixError{
-			operation: "vm.IsRunning",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.IsRunning",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -228,9 +228,9 @@ func (v *VM) GuestOS() (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			operation: "vm.GuestOS",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.GuestOS",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -304,9 +304,9 @@ func (v *VM) EnableSharedFolders(enabled bool) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.EnableSharedFolders",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.EnableSharedFolders",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -380,9 +380,9 @@ func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOptio
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.AddSharedFolder",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.AddSharedFolder",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -432,9 +432,9 @@ func (v *VM) RemoveSharedFolder(guestpath string) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.RemoveSharedFolder",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.RemoveSharedFolder",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -472,9 +472,9 @@ func (v *VM) Screenshot() ([]byte, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vm.Screenshot",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Screenshot",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -551,9 +551,9 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vm.Clone",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Clone",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -647,9 +647,9 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vm.CreateSnapshot",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.CreateSnapshot",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -706,9 +706,9 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.RemoveSnapshot",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.RemoveSnapshot",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -754,9 +754,9 @@ func (v *VM) Delete(options VmDeleteOption) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.Delete",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Delete",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -783,9 +783,9 @@ func (v *VM) CurrentSnapshot() (*Snapshot, error) {
 	err = C.VixVM_GetCurrentSnapshot(v.handle, &snapshotHandle)
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vm.CurrentSnapshot",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.CurrentSnapshot",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -830,9 +830,9 @@ func (v *VM) SnapshotByName(name string) (*Snapshot, error) {
 	err = C.VixVM_GetNamedSnapshot(v.handle, sname, &snapshotHandle)
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vm.SnapshotByName",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.SnapshotByName",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -872,9 +872,9 @@ func (v *VM) TotalRootSnapshots() (int, error) {
 	err = C.VixVM_GetNumRootSnapshots(v.handle, &result)
 	if C.VIX_OK != err {
 		return 0, &VixError{
-			operation: "vm.TotalRootSnapshots",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.TotalRootSnapshots",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -911,9 +911,9 @@ func (v *VM) TotalSharedFolders() (int, error) {
 
 	if C.VIX_OK != err {
 		return 0, &VixError{
-			operation: "vm.TotalSharedFolders",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.TotalSharedFolders",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -949,9 +949,9 @@ func (v *VM) RootSnapshot(index int) (*Snapshot, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vm.RootSnapshot",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.RootSnapshot",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1007,9 +1007,9 @@ func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOpt
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.SetSharedFolderState",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.SetSharedFolderState",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1057,9 +1057,9 @@ func (v *VM) SharedFolderState(index int) (string, string, int, error) {
 
 	if C.VIX_OK != err {
 		return "", "", 0, &VixError{
-			operation: "vm.SharedFolderState",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.SharedFolderState",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1117,9 +1117,9 @@ func (v *VM) Pause() error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.Pause",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Pause",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1163,9 +1163,9 @@ func (v *VM) Resume() error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.Resume",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Resume",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1225,9 +1225,9 @@ func (v *VM) PowerOff(options VMPowerOption) error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.PowerOff",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.PowerOff",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1293,9 +1293,9 @@ func (v *VM) PowerOn(options VMPowerOption) error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.PowerOn",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.PowerOn",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1355,9 +1355,9 @@ func (v *VM) Reset(options VMPowerOption) error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.Reset",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Reset",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1391,9 +1391,9 @@ func (v *VM) Suspend() error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.Suspend",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.Suspend",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1458,9 +1458,9 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			operation: "vm.ReadVariable",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.ReadVariable",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1544,9 +1544,9 @@ func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.WriteVariable",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.WriteVariable",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1616,9 +1616,9 @@ func (v *VM) RevertToSnapshot(snapshot *Snapshot, options VMPowerOption) error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.RevertToSnapshot",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.RevertToSnapshot",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1652,9 +1652,9 @@ func (v *VM) UpgradeVHardware() error {
 
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.UpgradeVHardware",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.UpgradeVHardware",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1778,9 +1778,9 @@ func (v *VM) LoginInGuest(username, password string, options GuestLoginOption) (
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vm.LoginInGuest",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.LoginInGuest",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1858,9 +1858,9 @@ func (v *VM) InstallTools(options InstallToolsOption) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.InstallTools",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.InstallTools",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1920,9 +1920,9 @@ func (v *VM) WaitForToolsInGuest(timeout time.Duration) error {
 	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
 	if C.VIX_OK != err {
 		return &VixError{
-			operation: "vm.WaitForToolsInGuest",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vm.WaitForToolsInGuest",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -1937,9 +1937,9 @@ func (v *VM) changeVmxSetting(name string, value string) error {
 
 	if isVmRunning {
 		return &VixError{
-			operation: "vm.changeVmxSetting",
-			code:      100000,
-			text:      "The VM has to be powered off in order to change its vmx settings",
+			Operation: "vm.changeVmxSetting",
+			Code:      100000,
+			Text:      "The VM has to be powered off in order to change its vmx settings",
 		}
 	}
 

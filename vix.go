@@ -214,66 +214,75 @@ const (
 	FILE_ATTRIBUTES_SYMLINK   FileAttr = C.VIX_FILE_ATTRIBUTES_SYMLINK
 )
 
+// Configuration struct for the Connect function
+type ConnectConfig struct {
+	// Hostname varies by product platform. With vCenter Server, ESX/ESXi hosts,
+	// VMware Workstation (shared mode) and VMware Server 2.0,
+	// use a URL of the form "https://<hostName>:<port>/sdk"
+	// where <hostName> is either the DNS name or IP address.
+	// If missing, <port> may default to 443 (see Remarks below).
+	//
+	// In VIX API 1.10 and later, you can omit "https://" and "/sdk" specifying
+	// just the DNS name or IP address.
+	// Credentials are required even for connections made locally.
+	// With Workstation, use nil to connect to the local host.
+	// With VMware Server 1.0.x, use the DNS name or IP address for remote
+	// connections, or the same as Workstation for local connections.
+	Hostname string
+
+	// TCP/IP port on the remote host.
+	// With VMware Workstation and VMware Player, let it empty for localhost.
+	// With ESX/ESXi hosts, VMware Workstation (shared mode) and VMware Server 2.0
+	// you specify port number within the hostName parameter, so this parameter is
+	// ignored (see Connect Remarks below).
+	Port uint
+
+	// Username for authentication on the remote machine.
+	// With VMware Workstation, VMware Player, and VMware Server 1.0.x,
+	// let it empty to authenticate as the current user on localhost.
+	// With vCenter Server, ESX/ESXi hosts, VMware Workstation (shared mode)
+	// and VMware Server 2.0, you must use a valid login.
+	Username string
+
+	// Password for authentication on the remote machine.
+	// With VMware Workstation, VMware Player, and VMware Server 1.0.x,
+	// let it empty to authenticate as the current user on localhost.
+	// With ESX/ESXi, VMware Workstation (shared mode) and VMware Server 2.0, you
+	// must use a valid password.
+	Password string
+
+	// Provider is the VMware product you would like to connect to:
+	// * With vCenter Server, ESX/ESXi hosts, and VMware Server 2.0, use
+	//   VMWARE_VI_SERVER.
+	// * With VMware Workstation, use VMWARE_WORKSTATION.
+	// * With VMware Workstation (shared mode), use VMWARE_WORKSTATION_SHARED.
+	// * With VMware Player, use VMWARE_PLAYER.
+	// * With VMware Server 1.0.x, use VMWARE_SERVER.
+	Provider Provider
+
+	// Bitwised option parameter.
+	Options HostOption
+}
+
 // Connects to a Provider
 //
 // Parameters:
 //
-// Provider:
-//   * With vCenter Server, ESX/ESXi hosts, and VMware Server 2.0,
-//     VMWARE_VI_SERVER.
-//   * With VMware Workstation, use VMWARE_WORKSTATION.
-//   * With VMware Workstation (shared mode), use VMWARE_WORKSTATION_SHARED.
-//   * With VMware Player, use VMWARE_PLAYER.
-//   * With VMware Server 1.0.x, use VMWARE_SERVER.
-//
-// Hostname:
-//   Varies by product platform. With vCenter Server, ESX/ESXi hosts,
-//   VMware Workstation (shared mode) and VMware Server 2.0,
-//   use a URL of the form "https://<hostName>:<port>/sdk"
-//   where <hostName> is either the DNS name or IP address.
-//   If missing, <port> may default to 443 (see Remarks below).
-//
-//   In VIX API 1.10 and later, you can omit "https://" and "/sdk" specifying
-//   just the DNS name or IP address.
-//   Credentials are required even for connections made locally.
-//   With Workstation, use nil to connect to the local host.
-//   With VMware Server 1.0.x, use the DNS name or IP address for remote
-//   connections, or the same as Workstation for local connections.
-//
-// Port:
-//   TCP/IP port on the remote host.
-//   With VMware Workstation and VMware Player, use zero for the local host.
-//   With ESX/ESXi hosts, VMware Workstation (shared mode) and VMware Server 2.0
-//   you specify port number within the hostName parameter, so this parameter is
-//   ignored (see Remarks below).
-//
-// Username:
-//   Username for authentication on the remote machine.
-//   With VMware Workstation, VMware Player, and VMware Server 1.0.x,
-//   use nil to authenticate as the current user on local host.
-//   With vCenter Server, ESX/ESXi hosts, VMware Workstation (shared mode)
-//   and VMware Server 2.0, you must use a valid login.
-//
-// Password:
-//   Password for authentication on the remote machine.
-//   With VMware Workstation, VMware Player, and VMware Server 1.0.x,
-//   use nil to authenticate as the current user on local host.
-//   With ESX/ESXi, VMware Workstation (shared mode) and VMware Server 2.0, you
-//   must use a valid login.
+//  config: See type ConnectConfig documentation for details
 //
 // Remarks:
 //   * To specify the local host (where the API client runs) with VMware
-//     Workstation and VMware Player, pass nil values for the hostname, port,
-//     login, and password parameters.
+//     Workstation and VMware Player, pass empty values for the hostname, port,
+//     login, and password parameters or just don't set them.
 //
 //   * With vCenter Server, ESX/ESXi hosts, and VMware Server 2.0, the URL for
 //     the hostname argument may specify the port.
-//     Otherwise an HTTPS connection is attempted on port 443. HTTPS is strongly
+//     Otherwise a HTTPS connection is attempted on port 443. HTTPS is strongly
 //     recommended.
 //     Port numbers are set during installation of Server 2.0. The installer's
 //     default HTTP and HTTPS values are 8222 and 8333 for Server on Windows, or
 //     (if not already in use) 80 and 443 for Server on Linux, and 902 for the
-//     automation socket, authd. If connecting to a virtual machine though a
+//     automation socket, authd. If connecting to a virtual machine through a
 //     firewall, port 902 and the communicating port must be opened to allow
 //     guest operations.
 //
@@ -293,8 +302,10 @@ const (
 //     parameter to include the bit flag specified by VERIFY_SSL_CERT.
 //     This option can also be set in the VMware config file by assigning
 //     vix.enableSslCertificateCheck as TRUE or FALSE.
+//
 //     The vix.sslCertificateFile config option specifies the path to a file
 //     containing CA certificates in PEM format.
+//
 //     The vix.sslCertificateDirectory config option can specify a directory
 //     containing files that each contain a CA certificate.
 //     Upon encountering a SSL validation error, the host handle is not created
@@ -309,14 +320,6 @@ const (
 //     with "" as the 'username' and the ticket as the 'password'.
 //
 // Since VMware Server 1.0
-type ConnectConfig struct {
-	Hostname           string
-	Port               uint
-	Username, Password string
-	Provider           Provider
-	Options            HostOption
-}
-
 func Connect(config ConnectConfig) (*Host, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var hostHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -349,9 +352,9 @@ func Connect(config ConnectConfig) (*Host, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "vix.Connect",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "vix.Connect",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -372,12 +375,17 @@ func cleanupHost(host *Host) {
 	}
 }
 
+// GoVix Error
 type VixError struct {
-	operation string
-	code      int
-	text      string
+	// The GoVix operation involved at the time of the error
+	Operation string
+	// Error code
+	Code int
+	// Description of the erro
+	Text string
 }
 
+// Returns a description of the error along with its code and operation
 func (e *VixError) Error() string {
-	return fmt.Sprintf("VIX Error: %s, code: %d, operation: %s", e.text, e.code, e.operation)
+	return fmt.Sprintf("VIX Error: %s, code: %d, operation: %s", e.Text, e.Code, e.Operation)
 }

@@ -29,9 +29,9 @@ func (s *Snapshot) Name() (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			operation: "snapshot.Name",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "snapshot.Name",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -51,26 +51,26 @@ func (s *Snapshot) Description() (string, error) {
 
 	if C.VIX_OK != err {
 		return "", &VixError{
-			operation: "snapshot.Description",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "snapshot.Description",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
 	return C.GoString(desc), nil
 }
 
-// This function returns the specified child snapshot.
+// This function returns the child snapshot corresponding to the index parameter
 //
 // Parameters:
 //
-// index: Index into the list of snapshots.
+//  index: Index into the list of snapshots.
 //
 // Remarks:
 //
-// * Snapshots are indexed from 0 to n-1, where n is the number of child
-//   snapshots. Use the function Snapshot.NumChildren() to get the value of n.
-// * This function is not supported when using the VMWARE_PLAYER provider.
+//   * Snapshots are indexed from 0 to n-1, where n is the number of child
+//     snapshots. Use the function Snapshot.NumChildren() to get the value of n.
+//   * This function is not supported when using the VMWARE_PLAYER provider.
 //
 // Since VMware Workstation 6.0
 func (s *Snapshot) Child(index int) (*Snapshot, error) {
@@ -83,9 +83,9 @@ func (s *Snapshot) Child(index int) (*Snapshot, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "snapshot.Child",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "snapshot.Child",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -102,7 +102,7 @@ func (s *Snapshot) Child(index int) (*Snapshot, error) {
 //
 // Remarks:
 //
-// * This function is not supported when using the VMWARE_PLAYER provider.
+//   * This function is not supported when using the VMWARE_PLAYER provider.
 //
 // Since VMware Workstation 6.0.
 func (s *Snapshot) NumChildren() (int, error) {
@@ -113,9 +113,9 @@ func (s *Snapshot) NumChildren() (int, error) {
 
 	if C.VIX_OK != err {
 		return 0, &VixError{
-			operation: "snapshot.NumChildren",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "snapshot.NumChildren",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
@@ -126,7 +126,7 @@ func (s *Snapshot) NumChildren() (int, error) {
 //
 // Remarks:
 //
-// * This function is not supported when using the VMWARE_PLAYER provider
+//   * This function is not supported when using the VMWARE_PLAYER provider
 //
 // Since VMware Workstation 6.0
 func (s *Snapshot) Parent() (*Snapshot, error) {
@@ -138,9 +138,9 @@ func (s *Snapshot) Parent() (*Snapshot, error) {
 
 	if C.VIX_OK != err {
 		return nil, &VixError{
-			operation: "snapshot.Parent",
-			code:      int(err & 0xFFFF),
-			text:      C.GoString(C.Vix_GetErrorText(err, nil)),
+			Operation: "snapshot.Parent",
+			Code:      int(err & 0xFFFF),
+			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
 
