@@ -432,7 +432,8 @@ type GuestFile struct {
 	//   * FILE_ATTRIBUTES_SYMLINK: Set if the pathname identifies a symbolic
 	//   link file.
 	//
-	// You have to use bitwise operations to identify which attributes are set
+	// Either attribute will be combined using the bitwise inclusive
+	// OR operator (|).
 	Attrs FileAttr
 }
 
