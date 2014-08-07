@@ -43,7 +43,7 @@ func main() {
 		fmt.Printf("%#v\n", adapter)
 	}
 
-	// toolState, err := vm.ToolState()
+	// toolState, err := vm.ToolsState()
 	// if err != nil {
 	// 	panic(err)
 	// }
