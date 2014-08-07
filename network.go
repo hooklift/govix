@@ -320,8 +320,7 @@ func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
 			ethN := strings.Split(key, ".")[0]
 			number, _ := strconv.Atoi(strings.Split(ethN, prefix)[1])
 
-			// If ethN is not present,
-			// its id is recycle
+			// If ethN is not present, its id is recycled
 			if vmx[ethN+".present"] == "FALSE" {
 				return number
 			}
