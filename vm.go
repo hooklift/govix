@@ -172,7 +172,7 @@ func (v *VM) PowerState() (VMPowerState, error) {
 }
 
 // Returns state of the VMware Tools suite in the guest.
-func (v *VM) ToolState() (GuestToolsState, error) {
+func (v *VM) ToolsState() (GuestToolsState, error) {
 	var err C.VixError = C.VIX_OK
 	var state C.VixToolsState = C.VIX_TOOLSSTATE_UNKNOWN
 
@@ -182,7 +182,7 @@ func (v *VM) ToolState() (GuestToolsState, error) {
 
 	if C.VIX_OK != err {
 		return TOOLSSTATE_UNKNOWN, &VixError{
-			Operation: "vm.ToolState",
+			Operation: "vm.ToolsState",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
@@ -1453,9 +1453,6 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	err = C.read_variable(jobHandle, readValue)
-
-	defer C.Vix_FreeBuffer(unsafe.Pointer(readValue))
-
 	if C.VIX_OK != err {
 		return "", &VixError{
 			Operation: "vm.ReadVariable",
@@ -1463,6 +1460,7 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
 		}
 	}
+	defer C.Vix_FreeBuffer(unsafe.Pointer(readValue))
 
 	return C.GoString(readValue), nil
 }
