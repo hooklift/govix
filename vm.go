@@ -1452,7 +1452,7 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.read_variable(jobHandle, readValue)
+	err = C.read_variable(jobHandle, &readValue)
 	if C.VIX_OK != err {
 		return "", &VixError{
 			Operation: "vm.ReadVariable",
@@ -1953,12 +1953,7 @@ func (v *VM) changeVmxSetting(name string, value string) error {
 
 	vmx[name] = value
 
-	err = writeVmx(vmxPath, vmx)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return writeVmx(vmxPath, vmx)
 }
 
 // Sets memory size in megabytes
@@ -1994,12 +1989,39 @@ func (v *VM) SetNumberVcpus(vcpus uint8) error {
 
 // Sets virtual machine name
 func (v *VM) SetDisplayName(name string) error {
-	return v.changeVmxSetting("displayName", name)
+	return v.changeVmxSetting("displayname", name)
 }
+
+// func (v *VM) readVmxVariable(name string) (string, error) {
+// 	val, err := v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, name)
+// 	if err != nil {
+// 		return "", err
+// 	}
+
+// 	if val == "" {
+// 		vmxPath, err := v.VmxPath()
+// 		if err != nil {
+// 			return "", err
+// 		}
+
+// 		vmx, err := readVmx(vmxPath)
+// 		if err != nil {
+// 			return "", err
+// 		}
+
+// 		if val, ok := vmx[name]; ok {
+// 			return val, nil
+// 		}
+// 	}
+
+// 	return "", nil
+// }
 
 // Gets virtual machine name
 func (v *VM) DisplayName() (string, error) {
-	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "displayName")
+	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "displayname")
+
+	//return v.readVmxVariable("displayname")
 }
 
 // Sets annotations for the virtual machine
@@ -2009,6 +2031,7 @@ func (v *VM) SetAnnotation(text string) error {
 
 func (v *VM) Annotation() (string, error) {
 	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "annotation")
+	//return v.readVmxVariable("annotation")
 }
 
 // func (v *VM) SetVirtualHwVersion(version string) error {

@@ -47,10 +47,10 @@ VixError get_num_shared_folders(VixHandle jobHandle, int* numSharedFolders) {
         VIX_PROPERTY_NONE);
 }
 
-VixError read_variable(VixHandle jobHandle, char* readValue) {
+VixError read_variable(VixHandle jobHandle, char** readValue) {
     return VixJob_Wait(jobHandle,
         VIX_PROPERTY_JOB_RESULT_VM_VARIABLE_STRING,
-        &readValue,
+        readValue,
         VIX_PROPERTY_NONE);
 }
 

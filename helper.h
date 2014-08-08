@@ -57,7 +57,7 @@ void find_items_callback(
 	void* goCallback);
 
 VixError get_num_shared_folders(VixHandle jobHandle, int* numSharedFolders);
-VixError read_variable(VixHandle jobHandle, char* readValue);
+VixError read_variable(VixHandle jobHandle, char** readValue);
 VixError get_temp_filepath(VixHandle jobHandle, char* tempFilePath);
 VixError is_file_or_dir(VixHandle jobHandle, int* result);
 VixError get_vm_url(char* url, VixHandle moreEvtInfo);
