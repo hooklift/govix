@@ -8,6 +8,7 @@ import "C"
 
 import (
 	"math"
+	"os"
 	"runtime"
 	"strconv"
 	"time"
@@ -720,9 +721,9 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 // Parameters:
 //
 //   options: For VMware Server 2.0 and ESX, this value must be VMDELETE_DISK_FILES.
-//   For all other versions it can be either 0 or VMDELETE_DISK_FILES.
-//   When option is VIX_VMDELETE_DISK_FILES, deletes all associated files.
-//   When option is 0, does not delete *.vmdk virtual disk file(s).
+//   For all other versions it can be either VMDELETE_KEEP_FILES or VMDELETE_DISK_FILES.
+//   When option is VMDELETE_DISK_FILES, it deletes all associated files.
+//   When option is VMDELETE_KEEP_FILES, does not delete *.vmdk virtual disk file(s).
 //
 // Remarks:
 //
@@ -730,7 +731,7 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 //     You can accomplish the same effect by deleting all virtual machine files
 //     using the host file system. This function simplifies the task by deleting
 //     all VMware files in a single function call.
-//     If a deleteOptions value of 0 is specified, the virtual disk (vmdk) files
+//     If a deleteOptions value of VMDELETE_KEEP_FILES is specified, the virtual disk (vmdk) files
 //     will not be deleted.
 //     This function does not delete other user files in the virtual machine
 //     folder.
@@ -741,11 +742,27 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 //   * Deleting a virtual machine that is the parent of a linked clone renders
 //     the linked clone useless.
 //
+//   * If the machine was powered on with GUI enabled, this function is going to
+//     return error VIX_E_FILE_ALREADY_LOCKED if the VM tab is open. If you want
+//     to force the removal despite this, pass the option VMDELETE_FORCE.
+//
 // since VMware Server 1.0
 //
 func (v *VM) Delete(options VmDeleteOption) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
+
+	if (options & VMDELETE_FORCE) != 0 {
+		vmxPath, err := v.VmxPath()
+		if err != nil {
+			return err
+		}
+
+		err = os.RemoveAll(vmxPath + ".lck")
+		if err != nil {
+			return err
+		}
+	}
 
 	jobHandle = C.VixVM_Delete(v.handle, C.VixVMDeleteOptions(options), nil, nil)
 

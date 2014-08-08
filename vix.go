@@ -172,6 +172,7 @@ type VmDeleteOption int
 
 const (
 	VMDELETE_KEEP_FILES VmDeleteOption = 0x0
+	VMDELETE_FORCE                     = 0x3
 	VMDELETE_DISK_FILES VmDeleteOption = C.VIX_VMDELETE_DISK_FILES
 )
 
