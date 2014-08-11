@@ -63,5 +63,3 @@ Redistribution of the open source libraries included with the VIX API is governe
 
 http://blogs.vmware.com/vix/2010/05/redistibutable-vix-api-client-libraries.html
 
-## License
-Copyright 2014 Cloudescape. All rights reserved.
