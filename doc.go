@@ -55,5 +55,38 @@ For logging, the following are the paths in each operating system:
   * OSX: `~/Library/Logs/VMware/*.log`
   * Linux: `/tmp/vmware-<username>/vix-<pid>.log`
   * Windows: `%TEMP%\vmware-<username>\vix-<pid>.log`
+
+
+Multithreading
+
+The Vix library is intended for use by multi-threaded clients. Vix shared
+objects are managed by the Vix library to avoid conflicts between threads.
+Clients need only be responsible for protecting user-defined shared data.
+
+
+VMware VIX EULA
+
+As noted in the End User License Agreement, the VIX API allows you to build and distribute your own applications. To facilitate this, the following files are designated as redistributable for the purpose of that agreement:
+
+  * VixAllProducts.lib
+  * VixAllProductsd.lib
+  * VixAllProductsDyn.lib
+  * vix.lib and vix.dll
+  * vixCOM.dll
+  * gvmomi-vix-1.13.1.dll
+  * libvixAllProducts.so
+  * libvix.so
+  * libgvmomi-vix-1.13.1.so.0
+  * vixwrapper-config.txt
+  * manifest.txt
+  * compiled perl modules resulting from building the contents of vix-perl.tar.gz or vix-perl.zip
+
+Redistribution of the open source libraries included with the VIX API is governed by their respective open source license agreements.
+
+http://blogs.vmware.com/vix/2010/05/redistibutable-vix-api-client-libraries.html
+
+License
+
+Copyright 2014 Cloudescape. All rights reserved.
 */
 package vix
