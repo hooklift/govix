@@ -143,7 +143,8 @@ type NetworkAdapter struct {
 	// your laptop from a wired network to a wireless network.
 	LinkStatePropagation bool
 
-	// Address type of the MAC by default it is "generated"
+	// Address type of the MAC by default it is "generated", but if a MAC address
+	// is defined it will be "static"
 	MacAddrType MacAddressType
 
 	// Used only when MacAddrType is NETWORK_MACADDRESSTYPE_STATIC
@@ -244,8 +245,10 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 		}
 	}
 
-	if adapter.MacAddrType == NETWORK_MACADDRESSTYPE_STATIC {
-		if !strings.HasPrefix(adapter.MacAddress.String(), "00:50:56") {
+	macaddr := adapter.MacAddress.String()
+
+	if macaddr != "" {
+		if !strings.HasPrefix(macaddr, "00:50:56") {
 			return &VixError{
 				Operation: "vm.AddNetworkAdapter",
 				Code:      100004,
@@ -273,7 +276,7 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 		vmx[prefix+".virtualDev"] = "e1000"
 	}
 
-	vmx[prefix+".wakeOnPcktRcv"] = "FALSE"
+	vmx[prefix+".wakeOnPcktRcv"] = strconv.FormatBool(adapter.WakeOnPcktRcv)
 
 	if string(adapter.MacAddrType) != "" {
 		vmx[prefix+".addressType"] = string(adapter.MacAddrType)
@@ -282,12 +285,13 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 		vmx[prefix+".addressType"] = "generated"
 	}
 
-	if adapter.MacAddress.String() != "" {
-		vmx[prefix+".address"] = adapter.MacAddress.String()
+	if macaddr != "" {
+		vmx[prefix+".address"] = macaddr
+		vmx[prefix+".addressType"] = "static"
 	}
 
 	if adapter.LinkStatePropagation {
-		vmx[prefix+".linkStatePropagation.enable"] = "TRUE"
+		vmx[prefix+".linkStatePropagation.enable"] = strconv.FormatBool(adapter.LinkStatePropagation)
 	}
 
 	if adapter.ConnType == NETWORK_CUSTOM {
@@ -301,14 +305,9 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 		vmx[prefix+".vnet"] = string(adapter.VSwitch.id)
 	}
 
-	vmx[prefix+".startConnected"] = "TRUE"
+	vmx[prefix+".startConnected"] = strconv.FormatBool(adapter.StartConnected)
 
-	err = writeVmx(vmxPath, vmx)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return writeVmx(vmxPath, vmx)
 }
 
 func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
@@ -356,8 +355,28 @@ func (v *VM) totalNetworkAdapters(vmx map[string]string) int {
 	return nextId
 }
 
+func (v *VM) RemoveAllNetworkAdapters() error {
+	vmxPath, err := v.VmxPath()
+	if err != nil {
+		return err
+	}
+
+	vmx, err := readVmx(vmxPath)
+	if err != nil {
+		return err
+	}
+
+	for key, _ := range vmx {
+		if strings.HasPrefix(key, "ethernet") {
+			delete(vmx, key)
+		}
+	}
+
+	return writeVmx(vmxPath, vmx)
+}
+
 // Removes network adapter from VMX file
-// Only "adapter.Id" is required.
+// Either "adapter.Id" or "adapter.MacAddress" can be used
 func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 	isVmRunning, err := v.IsRunning()
 	if err != nil {
