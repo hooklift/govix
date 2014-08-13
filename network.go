@@ -310,6 +310,8 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 	return writeVmx(vmxPath, vmx)
 }
 
+// Returns the next available ethernet Id, reusing ids if
+// the ethernet adapter has "present" equal to "FALSE"
 func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
 	var nextId int = 0
 	prefix := "ethernet"
@@ -335,8 +337,9 @@ func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
 	return nextId
 }
 
+// Returns the total number of network adapters in the VMX file
 func (v *VM) totalNetworkAdapters(vmx map[string]string) int {
-	var nextId int = 0
+	var total int = 0
 	prefix := "ethernet"
 
 	for key, _ := range vmx {
@@ -344,17 +347,16 @@ func (v *VM) totalNetworkAdapters(vmx map[string]string) int {
 			ethN := strings.Split(key, ".")[0]
 			number, _ := strconv.Atoi(strings.Split(ethN, prefix)[1])
 
-			if number > nextId {
-				nextId = number
+			if number > total {
+				total = number
 			}
 		}
 	}
 
-	nextId += 1
-
-	return nextId
+	return total
 }
 
+// Removes all network adapters
 func (v *VM) RemoveAllNetworkAdapters() error {
 	vmxPath, err := v.VmxPath()
 	if err != nil {
@@ -375,8 +377,7 @@ func (v *VM) RemoveAllNetworkAdapters() error {
 	return writeVmx(vmxPath, vmx)
 }
 
-// Removes network adapter from VMX file
-// Either "adapter.Id" or "adapter.MacAddress" can be used
+// Removes network adapter from VMX file that matches the ID in "adapter.Id"
 func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 	isVmRunning, err := v.IsRunning()
 	if err != nil {
@@ -421,7 +422,7 @@ func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 
 // List current network adapters attached to the virtual
 // machine.
-func (v *VM) NetworkAdapters() ([]NetworkAdapter, error) {
+func (v *VM) NetworkAdapters() ([]*NetworkAdapter, error) {
 	vmxPath, err := v.VmxPath()
 	if err != nil {
 		return nil, err
@@ -432,8 +433,9 @@ func (v *VM) NetworkAdapters() ([]NetworkAdapter, error) {
 		return nil, err
 	}
 
-	var adapters []NetworkAdapter
-	for i := 0; i < v.totalNetworkAdapters(vmx); i++ {
+	var adapters []*NetworkAdapter
+	// VMX ethernet adapters seem to not be zero based
+	for i := 1; i <= v.totalNetworkAdapters(vmx); i++ {
 		id := strconv.Itoa(i)
 		prefix := "ethernet" + id
 
@@ -449,7 +451,7 @@ func (v *VM) NetworkAdapters() ([]NetworkAdapter, error) {
 		genAddress, _ := net.ParseMAC(vmx[prefix+".generatedAddress"])
 		vswitch, _ := GetVSwitch(vmx[prefix+".vnet"])
 
-		adapter := NetworkAdapter{
+		adapter := &NetworkAdapter{
 			Id:                        id,
 			present:                   present,
 			ConnType:                  NetworkType(vmx[prefix+".connectionType"]),
@@ -469,4 +471,9 @@ func (v *VM) NetworkAdapters() ([]NetworkAdapter, error) {
 	}
 
 	return adapters, nil
+}
+
+// Returns the VM IP Address as reported by VMWare Tools
+func (v *VM) IPAddress() (string, error) {
+	return v.ReadVariable(VM_GUEST_VARIABLE, "ip")
 }
