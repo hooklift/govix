@@ -7,7 +7,7 @@ vmware workstation, player, fusion and server.
 
 vSphere API, starting from 5.0, merged VIX API in the so-called
 GuestOperationsManager managed object. So, we encourage you to use
-govsphere for vSphere instad.
+GovSphere for vSphere instead.
 
 
 Features
