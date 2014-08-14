@@ -220,21 +220,6 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 				Text:      fmt.Sprintf("Virtual hardware version needs to be 7 or higher in order to use vmxnet3. Current hardware version: %d", hwversion),
 			}
 		}
-
-		// This will not work if the VM is powered off
-		//
-		// toolState, err := v.ToolState()
-		// if err != nil {
-		// 	return err
-		// }
-
-		// if toolState != TOOLSSTATE_RUNNING {
-		// 	return &VixError{
-		// 		code: 100002,
-		// 		text: fmt.Sprintf("VMware tools have to be installed in order to use vmxnet3. Current tools state: %d", toolState),
-		// 	}
-		// }
-
 	}
 
 	if adapter.LinkStatePropagation && (adapter.ConnType != NETWORK_BRIDGED) {
@@ -258,40 +243,44 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 	}
 
 	nextId := v.nextNetworkAdapterId(vmx)
-	prefix := fmt.Sprintf("ethernet%d", nextId)
+	prefix := fmt.Sprintf("ethernet%d.", nextId)
 
-	vmx[prefix+".present"] = strings.ToUpper(strconv.FormatBool(adapter.present))
+	vmx[prefix+"present"] = strings.ToUpper(strconv.FormatBool(adapter.present))
 
 	if string(adapter.ConnType) != "" {
-		vmx[prefix+".connectionType"] = string(adapter.ConnType)
+		vmx[prefix+"connectionType"] = string(adapter.ConnType)
 	} else {
 		//default
-		vmx[prefix+".connectionType"] = "nat"
+		vmx[prefix+"connectionType"] = "nat"
 	}
 
 	if string(adapter.Vdevice) != "" {
-		vmx[prefix+".virtualDev"] = string(adapter.Vdevice)
+		vmx[prefix+"virtualDev"] = string(adapter.Vdevice)
 	} else {
 		//default
-		vmx[prefix+".virtualDev"] = "e1000"
+		vmx[prefix+"virtualDev"] = "e1000"
 	}
 
-	vmx[prefix+".wakeOnPcktRcv"] = strconv.FormatBool(adapter.WakeOnPcktRcv)
+	vmx[prefix+"wakeOnPcktRcv"] = strconv.FormatBool(adapter.WakeOnPcktRcv)
 
 	if string(adapter.MacAddrType) != "" {
-		vmx[prefix+".addressType"] = string(adapter.MacAddrType)
+		vmx[prefix+"addressType"] = string(adapter.MacAddrType)
 	} else {
 		//default
-		vmx[prefix+".addressType"] = "generated"
+		vmx[prefix+"addressType"] = "generated"
 	}
 
 	if macaddr != "" {
-		vmx[prefix+".address"] = macaddr
-		vmx[prefix+".addressType"] = "static"
+		vmx[prefix+"address"] = macaddr
+		vmx[prefix+"addressType"] = "static"
+
+		// Makes sure a generated MAC address is removed if it exists
+		delete(vmx, "generatedAddress")
+		delete(vmx, "generatedAddressOffset")
 	}
 
 	if adapter.LinkStatePropagation {
-		vmx[prefix+".linkStatePropagation.enable"] = strconv.FormatBool(adapter.LinkStatePropagation)
+		vmx[prefix+"linkStatePropagation.enable"] = strconv.FormatBool(adapter.LinkStatePropagation)
 	}
 
 	if adapter.ConnType == NETWORK_CUSTOM {
@@ -302,10 +291,10 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 				Text:      "VSwitch " + adapter.VSwitch.id + " does not exist",
 			}
 		}
-		vmx[prefix+".vnet"] = string(adapter.VSwitch.id)
+		vmx[prefix+"vnet"] = string(adapter.VSwitch.id)
 	}
 
-	vmx[prefix+".startConnected"] = strconv.FormatBool(adapter.StartConnected)
+	vmx[prefix+"startConnected"] = strconv.FormatBool(adapter.StartConnected)
 
 	return writeVmx(vmxPath, vmx)
 }
