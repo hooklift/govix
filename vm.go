@@ -2037,8 +2037,6 @@ func (v *VM) SetDisplayName(name string) error {
 // Gets virtual machine name
 func (v *VM) DisplayName() (string, error) {
 	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "displayname")
-
-	//return v.readVmxVariable("displayname")
 }
 
 // Sets annotations for the virtual machine
@@ -2046,6 +2044,7 @@ func (v *VM) SetAnnotation(text string) error {
 	return v.changeVmxSetting("annotation", text)
 }
 
+// Returns the description or annotations added to the virtual machine
 func (v *VM) Annotation() (string, error) {
 	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "annotation")
 	//return v.readVmxVariable("annotation")
