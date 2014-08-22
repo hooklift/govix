@@ -64,5 +64,9 @@ As noted in the End User License Agreement, the VIX API allows you to build and 
 
 Redistribution of the open source libraries included with the VIX API is governed by their respective open source license agreements.
 
-http://blogs.vmware.com/vix/2010/05/redistibutable-vix-api-client-libraries.html
+**Source:** http://blogs.vmware.com/vix/2010/05/redistibutable-vix-api-client-libraries.html
 
+## Resources
+
+* **Configuration Maximums:** http://www.vmware.com/pdf/vsphere5/r50/vsphere-50-configuration-maximums.pdf
+* **VMX Parameters:** http://faq.sanbarrow.com/index.php?sid=1504158&lang=en&action=show&cat=2
