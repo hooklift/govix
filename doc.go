@@ -1,6 +1,4 @@
 /*
-Govix
-
 Govix is a set of Go bindings for VMware VIX.
 
 The VIX API allows you to automate virtual machine operations on most
