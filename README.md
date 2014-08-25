@@ -46,6 +46,12 @@ Be aware that the previous example assumes $GOPATH only has a path set.
 * **Windows:** `%TEMP%\vmware-<username>\vix-<pid>.log`
 
 
+### Multithreading
+
+The Vix library is intended for use by multi-threaded clients. Vix shared
+objects are managed by the Vix library to avoid conflicts between threads.
+Clients need only be responsible for protecting user-defined shared data.
+
 ## VMware VIX EULA
 As noted in the End User License Agreement, the VIX API allows you to build and distribute your own applications. To facilitate this, the following files are designated as redistributable for the purpose of that agreement:
 
