@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/c4milo/govix"
+	"github.com/cloudescape/govix"
 )
 
 func main() {
