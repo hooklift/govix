@@ -155,7 +155,7 @@ type NetworkAdapter struct {
 
 	// If ConnType is NETWORK_CUSTOM, this field allows you to choose to which
 	// virtual switch you want to plug this virtual adapter to. Ex: vmnet2
-	VSwitch VSwitch
+	VSwitch *VSwitch
 
 	// Whether or not the network adapter will be connected on boot
 	StartConnected bool
@@ -217,7 +217,9 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 			return &VixError{
 				Operation: "vm.AddNetworkAdapter",
 				Code:      100001,
-				Text:      fmt.Sprintf("Virtual hardware version needs to be 7 or higher in order to use vmxnet3. Current hardware version: %d", hwversion),
+				Text: fmt.Sprintf("Virtual hardware version needs to be 7 "+
+					"or higher in order to use vmxnet3. Current hardware "+
+					"version: %d", hwversion),
 			}
 		}
 	}
@@ -237,7 +239,8 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 			return &VixError{
 				Operation: "vm.AddNetworkAdapter",
 				Code:      100004,
-				Text:      "Static MAC addresses have to start with VMware officially assigned prefix: 00:50:56",
+				Text: "Static MAC addresses have to start with VMware " +
+					"officially assigned prefix: 00:50:56",
 			}
 		}
 	}
@@ -299,7 +302,7 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 	return writeVmx(vmxPath, vmx)
 }
 
-// Returns the next available ethernet Id, reusing ids if
+// Returns next available ethernet Id, reusing ids if
 // the ethernet adapter has "present" equal to "FALSE"
 func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
 	var nextId int = 0
@@ -326,7 +329,7 @@ func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
 	return nextId
 }
 
-// Returns the total number of network adapters in the VMX file
+// Returns total number of network adapters in VMX file
 func (v *VM) totalNetworkAdapters(vmx map[string]string) int {
 	var total int = 0
 	prefix := "ethernet"
@@ -462,7 +465,7 @@ func (v *VM) NetworkAdapters() ([]*NetworkAdapter, error) {
 	return adapters, nil
 }
 
-// Returns the VM IP Address as reported by VMWare Tools
+// Returns VM IP Address as reported by VMWare Tools
 func (v *VM) IPAddress() (string, error) {
 	return v.ReadVariable(VM_GUEST_VARIABLE, "ip")
 }
