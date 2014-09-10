@@ -1,4 +1,5 @@
 package vix
+
 /**
 * This Source Code Form is subject to the terms of the Mozilla Public
 * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -307,7 +308,7 @@ func (v *VM) EnableSharedFolders(enabled bool) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.EnableSharedFolders",
@@ -383,7 +384,7 @@ func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOptio
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.AddSharedFolder",
@@ -435,7 +436,7 @@ func (v *VM) RemoveSharedFolder(guestpath string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.RemoveSharedFolder",
@@ -709,7 +710,7 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.RemoveSnapshot",
@@ -773,7 +774,7 @@ func (v *VM) Delete(options VmDeleteOption) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.Delete",
@@ -1026,7 +1027,7 @@ func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOpt
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.SetSharedFolderState",
@@ -1134,9 +1135,7 @@ func (v *VM) Pause() error {
 	// 	C.VIX_PROPERTY_NONE)
 
 	// defer C.Vix_ReleaseHandle(snapshotHandle)
-	err = C.VixJob_Wait(jobHandle,
-		C.VIX_PROPERTY_NONE)
-
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.Pause",
@@ -1180,9 +1179,7 @@ func (v *VM) Resume() error {
 	// 	C.VIX_PROPERTY_NONE)
 
 	// defer C.Vix_ReleaseHandle(snapshotHandle)
-	err = C.VixJob_Wait(jobHandle,
-		C.VIX_PROPERTY_NONE)
-
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.Resume",
@@ -1242,9 +1239,7 @@ func (v *VM) PowerOff(options VMPowerOption) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle,
-		C.VIX_PROPERTY_NONE)
-
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.PowerOff",
@@ -1310,9 +1305,7 @@ func (v *VM) PowerOn(options VMPowerOption) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle,
-		C.VIX_PROPERTY_NONE)
-
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.PowerOn",
@@ -1372,9 +1365,7 @@ func (v *VM) Reset(options VMPowerOption) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle,
-		C.VIX_PROPERTY_NONE)
-
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.Reset",
@@ -1408,9 +1399,7 @@ func (v *VM) Suspend() error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle,
-		C.VIX_PROPERTY_NONE)
-
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.Suspend",
@@ -1560,7 +1549,7 @@ func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 
 	if C.VIX_OK != err {
 		return &VixError{
@@ -1632,7 +1621,7 @@ func (v *VM) RevertToSnapshot(snapshot *Snapshot, options VMPowerOption) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 
 	if C.VIX_OK != err {
 		return &VixError{
@@ -1668,7 +1657,7 @@ func (v *VM) UpgradeVHardware() error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 
 	if C.VIX_OK != err {
 		return &VixError{
@@ -1795,7 +1784,7 @@ func (v *VM) LoginInGuest(username, password string, options GuestLoginOption) (
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return nil, &VixError{
 			Operation: "vm.LoginInGuest",
@@ -1875,7 +1864,7 @@ func (v *VM) InstallTools(options InstallToolsOption) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.InstallTools",
@@ -1937,7 +1926,7 @@ func (v *VM) WaitForToolsInGuest(timeout time.Duration) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "vm.WaitForToolsInGuest",

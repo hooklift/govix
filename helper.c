@@ -10,6 +10,10 @@
 #include "helper.h"
 #include "_cgo_export.h"
 
+VixError vix_job_wait(VixHandle jobHandle) {
+    return VixJob_Wait(jobHandle, VIX_PROPERTY_NONE);
+}
+
 VixError get_vix_handle(
     VixHandle jobHandle,
     VixPropertyID prop1,

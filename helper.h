@@ -5,6 +5,8 @@
 #define helpers_h 1
 #include <stdlib.h>
 
+VixError vix_job_wait(VixHandle jobHandle);
+
 VixError get_vix_handle(
 	VixHandle jobHandle,
 	VixPropertyID prop1,

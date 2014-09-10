@@ -66,7 +66,7 @@ func (g *Guest) CopyFileToHost(guestpath, hostpath string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "guest.CopyFileToHost",
@@ -112,7 +112,7 @@ func (g *Guest) MkDir(path string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "guest.MkDir",
@@ -185,7 +185,7 @@ func (g *Guest) RmDir(path string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "guest.RmDir",
@@ -223,7 +223,7 @@ func (g *Guest) RmFile(filepath string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "guest.RmFile",
@@ -404,7 +404,7 @@ func (g *Guest) Kill(pid uint64) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "guest.Kill",
@@ -464,7 +464,7 @@ func (g *Guest) Ls(dir string) ([]*GuestFile, error) {
 	jobHandle = C.VixVM_ListDirectoryInGuest(g.handle, guestdir, 0, nil, nil)
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return nil, &VixError{
 			Operation: "guest.Ls.ListDirectoryInGuest",
@@ -538,7 +538,7 @@ func (g *Guest) Ps() ([]*GuestProcess, error) {
 	jobHandle = C.VixVM_ListProcessesInGuest(g.handle, 0, nil, nil)
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return nil, &VixError{
 			Operation: "guest.Ps",
@@ -621,7 +621,7 @@ func (g *Guest) Logout() error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "guest.Logout",
@@ -855,7 +855,7 @@ func (g *Guest) Mv(path1, path2 string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "guest.Mv",

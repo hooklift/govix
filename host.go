@@ -1,4 +1,5 @@
 package vix
+
 /**
 * This Source Code Form is subject to the terms of the Mozilla Public
 * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -61,7 +62,7 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return nil, &VixError{
 			Operation: "host.FindItems",
@@ -209,7 +210,7 @@ func (h *Host) RegisterVm(vmxFile string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "host.RegisterVM",
@@ -258,7 +259,7 @@ func (h *Host) UnregisterVm(vmxFile string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "host.UnregisterVM",
@@ -334,7 +335,7 @@ func (h *Host) CopyFileToGuest(src string, guest *Guest, dest string) error {
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
-	err = C.VixJob_Wait(jobHandle, C.VIX_PROPERTY_NONE)
+	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
 		return &VixError{
 			Operation: "host.CopyFileToGuest",
