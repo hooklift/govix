@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef helpers_h
 #define helpers_h 1
+#include <stdlib.h>
 
 VixError get_vix_handle(
 	VixHandle jobHandle,
@@ -44,7 +45,7 @@ VixError get_guest_file(VixHandle jobHandle,
 						int64* modtime,
 						int* flags);
 
-VixError get_guest_process(VixHandle jobHandle, 
+VixError get_guest_process(VixHandle jobHandle,
 						int i,
 						char* name,
 						uint64* pid,
