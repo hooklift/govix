@@ -1,5 +1,6 @@
 # VMware VIX API for GO
 [![GoDoc](https://godoc.org/github.com/cloudescape/govix?status.svg)](https://godoc.org/github.com/cloudescape/govix)
+[![Build Status](https://travis-ci.org/cloudescape/govix.svg?branch=master)](https://travis-ci.org/cloudescape/govix)
 
 The VIX API allows you to automate virtual machine operations on most current VMware hosted products such as: vmware workstation, player, fusion and server. 
 
