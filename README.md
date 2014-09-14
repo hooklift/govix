@@ -2,7 +2,7 @@
 [![GoDoc](https://godoc.org/github.com/cloudescape/govix?status.svg)](https://godoc.org/github.com/cloudescape/govix)
 [![Build Status](https://travis-ci.org/cloudescape/govix.svg?branch=master)](https://travis-ci.org/cloudescape/govix)
 
-The VIX API allows you to automate virtual machine operations on most current VMware hosted products such as: vmware workstation, player, fusion and server. 
+The VIX API allows you to automate virtual machine operations on most current VMware hosted products such as: vmware workstation, player, fusion and server.
 
 vSphere API, starting from 5.0, merged VIX API in the so-called GuestOperationsManager managed object. So, we encourage you to use govsphere for vSphere.
 
@@ -10,18 +10,19 @@ vSphere API, starting from 5.0, merged VIX API in the so-called GuestOperationsM
 **Google groups:** https://groups.google.com/group/govix
 
 ## Features
-This API supports: 
+This API supports:
 
 * Adding, removing and listing virtual networks adapters attached to a VM
 * Adding and removing virtual CPUs and memory from a VM
 * Managing virtual switches
 * Managing virtual machines life cycle: power on, power off, reset, pause and resume.
-* Adding and removing shared folders 
+* Adding and removing shared folders
 * Taking screenshots from a running VM
 * Cloning VMs
 * Creating and removing Snapshots as well as restoring a VM from a Snapshot
 * Upgrading virtual hardware
 * Guest management: login, logout, install vmware tools, etc.
+* Attaching and detaching CD/DVD drives on SATA, SCSI or IDE controllers
 
 For a more detailed information about the API, please refer to the API documentation.
 
