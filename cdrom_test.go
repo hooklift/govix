@@ -6,7 +6,7 @@ func TestAttachCdrom(t *testing.T) {
 
 }
 
-func TestDetacheCdrom(t *testing.T) {
+func TestDetachCdrom(t *testing.T) {
 
 }
 
