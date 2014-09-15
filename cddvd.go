@@ -51,46 +51,25 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 	v.vmxfile.Read()
 	model := v.vmxfile.model
 
+	device := vmx.Device{}
+	if config.Filename != "" {
+		device.Filename = config.Filename
+		device.Type = CDROM_IMAGE
+	} else {
+		device.Type = CDROM_RAW
+		device.Autodetect = true
+	}
+
+	device.Present = true
+	device.StartConnected = true
+
 	switch config.Bus {
 	case IDE:
-		device := vmx.IDEDevice{}
-		if config.Filename != "" {
-			device.Filename = config.Filename
-			device.Type = CDROM_IMAGE
-		} else {
-			device.Type = CDROM_RAW
-			device.Autodetect = true
-		}
-
-		device.Present = true
-		device.StartConnected = true
-		model.IDEDevices = append(model.IDEDevices, device)
+		model.IDEDevices = append(model.IDEDevices, vmx.IDEDevice{Device: device})
 	case SCSI:
-		device := vmx.SCSIDevice{}
-		if config.Filename != "" {
-			device.Filename = config.Filename
-			device.Type = CDROM_IMAGE
-		} else {
-			device.Type = CDROM_RAW
-			device.Autodetect = true
-		}
-
-		device.Present = true
-		device.StartConnected = true
-		model.SCSIDevices = append(model.SCSIDevices, device)
+		model.SCSIDevices = append(model.SCSIDevices, vmx.SCSIDevice{Device: device})
 	case SATA:
-		device := vmx.SATADevice{}
-		if config.Filename != "" {
-			device.Filename = config.Filename
-			device.Type = CDROM_IMAGE
-		} else {
-			device.Type = CDROM_RAW
-			device.Autodetect = true
-		}
-
-		device.Present = true
-		device.StartConnected = true
-		model.SATADevices = append(model.SATADevices, device)
+		model.SATADevices = append(model.SATADevices, vmx.SATADevice{Device: device})
 	default:
 		return &VixError{
 			Operation: "vm.AttachCDDVD",
