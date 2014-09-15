@@ -19,8 +19,8 @@ const (
 	SATA BusType = "sata"
 )
 
-// CDROM configuration
-type CdromConfig struct {
+// CD/DVD configuration
+type CDDVDConfig struct {
 	ID string
 	// Either IDE, SCSI or SATA
 	Bus BusType
@@ -31,10 +31,10 @@ type CdromConfig struct {
 
 // Attaches a CD/DVD drive to the virtual machine.
 // TODO(c4milo): make it thread safe
-func (v *VM) AttachCdrom(config *CdromConfig) error {
+func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
-			Operation: "vm.AttachCdrom",
+			Operation: "vm.AttachCDDVD",
 			Code:      200000,
 			Text:      "Virtual machine must be powered off in order to attach a CD/DVD drive.",
 		}
@@ -95,7 +95,7 @@ func (v *VM) AttachCdrom(config *CdromConfig) error {
 		vm.SATADevices = append(vm.SATADevices, device)
 	default:
 		return &VixError{
-			Operation: "vm.AttachCdrom",
+			Operation: "vm.AttachCDDVD",
 			Code:      200001,
 			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", config.Bus),
 		}
@@ -112,12 +112,12 @@ func (v *VM) AttachCdrom(config *CdromConfig) error {
 	return err
 }
 
-// Detaches a CDROM device from the virtual machine
+// Detaches a CD/DVD device from the virtual machine
 // TODO(c4milo): make it thread safe
-func (v *VM) DetachCdrom(config *CdromConfig) error {
+func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
-			Operation: "vm.DetachCdrom",
+			Operation: "vm.DetachCDDVD",
 			Code:      200002,
 			Text:      "Virtual machine must be powered off in order to detach CD/DVD drive.",
 		}
@@ -164,7 +164,7 @@ func (v *VM) DetachCdrom(config *CdromConfig) error {
 		}
 	default:
 		return &VixError{
-			Operation: "vm.DetachCdrom",
+			Operation: "vm.DetachCDDVD",
 			Code:      200003,
 			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", config.Bus),
 		}
@@ -182,6 +182,6 @@ func (v *VM) DetachCdrom(config *CdromConfig) error {
 }
 
 // Returns the list of currently attached CD/DVD devices
-func (v *VM) Cdroms() (*CdromConfig, error) {
+func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	return nil, nil
 }
