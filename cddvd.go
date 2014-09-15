@@ -158,8 +158,6 @@ func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 }
 
 // Returns an unordered slice of currently attached CD/DVD devices on any bus.
-// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
-// in host.OpenVM just once.
 func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	// Loads VMX file in memory
 	err := v.vmxfile.Read()
@@ -220,8 +218,6 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 
 // Returns the CD/DVD drive identified by ID
 // This function depends entirely on how GoVMX identifies array's elements
-// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
-// in host.OpenVM just once.
 func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
 	err := v.vmxfile.Read()
 	if err != nil {
