@@ -22,12 +22,6 @@ type VMXFile struct {
 	path  string
 }
 
-func NewVMXFile(fpath string) (*VMXFile, error) {
-	return &VMXFile{
-		path: fpath,
-	}, nil
-}
-
 // Reads VMX file from disk and unmarshals it
 func (vmxfile *VMXFile) Read() error {
 	data, err := ioutil.ReadFile(vmxfile.path)

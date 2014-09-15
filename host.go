@@ -155,9 +155,8 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 		}
 	}
 
-	vmxfile, err2 := NewVMXFile(vmxFile)
-	if err2 != nil {
-		return nil, err2
+	vmxfile := &VMXFile{
+		path: vmxFile,
 	}
 
 	// Loads VMX file in memory
