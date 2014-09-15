@@ -64,7 +64,7 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 		return err
 	}
 
-	device := vmx.CommonDevice{}
+	device := vmx.Device{}
 	if config.Filename != "" {
 		device.Filename = config.Filename
 		device.Type = CDROM_IMAGE
