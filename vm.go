@@ -20,7 +20,8 @@ import (
 
 type VM struct {
 	// Internal VIX handle
-	handle C.VixHandle
+	handle  C.VixHandle
+	vmxfile *VMXFile
 }
 
 // Returns number of virtual CPUs configured for
