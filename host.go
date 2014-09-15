@@ -10,7 +10,6 @@ package vix
 import "C"
 
 import (
-	"os"
 	"runtime"
 	"unsafe"
 )
@@ -156,14 +155,17 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 		}
 	}
 
-	file, err2 := os.OpenFile(vmxFile, os.O_RDWR, 0640)
+	vmxfile, err2 := NewVMXFile(vmxFile)
 	if err2 != nil {
 		return nil, err2
 	}
 
+	// Loads VMX file in memory
+	vmxfile.Read()
+
 	vm := &VM{
 		handle:  vmHandle,
-		vmxfile: file,
+		vmxfile: vmxfile,
 	}
 
 	runtime.SetFinalizer(vm, cleanupVM)

@@ -21,7 +21,7 @@ import (
 type VM struct {
 	// Internal VIX handle
 	handle  C.VixHandle
-	vmxfile *os.File
+	vmxfile *VMXFile
 }
 
 // Returns number of virtual CPUs configured for
@@ -576,10 +576,6 @@ func cleanupVM(v *VM) {
 	if v.handle != C.VIX_INVALID_HANDLE {
 		C.Vix_ReleaseHandle(v.handle)
 		v.handle = C.VIX_INVALID_HANDLE
-	}
-
-	if v.vmxfile != nil {
-		v.vmxfile.Close()
 	}
 }
 

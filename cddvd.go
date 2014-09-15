@@ -5,7 +5,6 @@ package vix
 
 import (
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"sync"
 
@@ -39,9 +38,6 @@ type CDDVDConfig struct {
 }
 
 // Attaches a CD/DVD drive to the virtual machine.
-// TODO(c4milo): make it thread safe
-// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
-// in host.OpenVM just once.
 func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
@@ -51,18 +47,9 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 		}
 	}
 
-	v.vmxfile.Seek(0, 0)
-	data, err := ioutil.ReadAll(v.vmxfile)
-	if err != nil {
-		return err
-	}
-
-	vm := new(vmx.VirtualMachine)
-
-	err = vmx.Unmarshal(data, vm)
-	if err != nil {
-		return err
-	}
+	// Loads VMX file in memory
+	v.vmxfile.Read()
+	model := v.vmxfile.model
 
 	switch config.Bus {
 	case IDE:
@@ -77,7 +64,7 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 
 		device.Present = true
 		device.StartConnected = true
-		vm.IDEDevices = append(vm.IDEDevices, device)
+		model.IDEDevices = append(model.IDEDevices, device)
 	case SCSI:
 		device := vmx.SCSIDevice{}
 		if config.Filename != "" {
@@ -90,7 +77,7 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 
 		device.Present = true
 		device.StartConnected = true
-		vm.SCSIDevices = append(vm.SCSIDevices, device)
+		model.SCSIDevices = append(model.SCSIDevices, device)
 	case SATA:
 		device := vmx.SATADevice{}
 		if config.Filename != "" {
@@ -103,7 +90,7 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 
 		device.Present = true
 		device.StartConnected = true
-		vm.SATADevices = append(vm.SATADevices, device)
+		model.SATADevices = append(model.SATADevices, device)
 	default:
 		return &VixError{
 			Operation: "vm.AttachCDDVD",
@@ -112,21 +99,10 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 		}
 	}
 
-	newdata, err := vmx.Marshal(vm)
-	if err != nil {
-		return err
-	}
-
-	v.vmxfile.Seek(0, 0)
-	_, err = v.vmxfile.Write(newdata)
-
-	return err
+	return v.vmxfile.Write()
 }
 
 // Detaches a CD/DVD device from the virtual machine
-// TODO(c4milo): make it thread safe
-// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
-// in host.OpenVM just once.
 func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
@@ -136,43 +112,38 @@ func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 		}
 	}
 
-	v.vmxfile.Seek(0, 0)
-	data, err := ioutil.ReadAll(v.vmxfile)
+	// Loads VMX file in memory
+	err := v.vmxfile.Read()
 	if err != nil {
 		return err
 	}
 
-	vm := new(vmx.VirtualMachine)
-
-	err = vmx.Unmarshal(data, vm)
-	if err != nil {
-		return err
-	}
+	model := v.vmxfile.model
 
 	switch config.Bus {
 	case IDE:
-		for i, device := range vm.IDEDevices {
+		for i, device := range model.IDEDevices {
 			if config.ID == device.VMXID {
 				// This method of removing the element avoids memory leaks
-				copy(vm.IDEDevices[i:], vm.IDEDevices[i+1:])
-				vm.IDEDevices[len(vm.IDEDevices)-1] = vmx.IDEDevice{}
-				vm.IDEDevices = vm.IDEDevices[:len(vm.IDEDevices)-1]
+				copy(model.IDEDevices[i:], model.IDEDevices[i+1:])
+				model.IDEDevices[len(model.IDEDevices)-1] = vmx.IDEDevice{}
+				model.IDEDevices = model.IDEDevices[:len(model.IDEDevices)-1]
 			}
 		}
 	case SCSI:
-		for i, device := range vm.SCSIDevices {
+		for i, device := range model.SCSIDevices {
 			if config.ID == device.VMXID {
-				copy(vm.SCSIDevices[i:], vm.SCSIDevices[i+1:])
-				vm.SCSIDevices[len(vm.SCSIDevices)-1] = vmx.SCSIDevice{}
-				vm.SCSIDevices = vm.SCSIDevices[:len(vm.SCSIDevices)-1]
+				copy(model.SCSIDevices[i:], model.SCSIDevices[i+1:])
+				model.SCSIDevices[len(model.SCSIDevices)-1] = vmx.SCSIDevice{}
+				model.SCSIDevices = model.SCSIDevices[:len(model.SCSIDevices)-1]
 			}
 		}
 	case SATA:
-		for i, device := range vm.SATADevices {
+		for i, device := range model.SATADevices {
 			if config.ID == device.VMXID {
-				copy(vm.SATADevices[i:], vm.SATADevices[i+1:])
-				vm.SATADevices[len(vm.SATADevices)-1] = vmx.SATADevice{}
-				vm.SATADevices = vm.SATADevices[:len(vm.SATADevices)-1]
+				copy(model.SATADevices[i:], model.SATADevices[i+1:])
+				model.SATADevices[len(model.SATADevices)-1] = vmx.SATADevice{}
+				model.SATADevices = model.SATADevices[:len(model.SATADevices)-1]
 			}
 		}
 	default:
@@ -183,35 +154,20 @@ func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 		}
 	}
 
-	newdata, err := vmx.Marshal(vm)
-	if err != nil {
-		return err
-	}
-
-	v.vmxfile.Seek(0, 0)
-	_, err = v.vmxfile.Write(newdata)
-
-	return nil
+	return v.vmxfile.Write()
 }
 
 // Returns an unordered slice of currently attached CD/DVD devices on any bus.
 // TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
 // in host.OpenVM just once.
 func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
-	// unmarshal vmx
-	v.vmxfile.Seek(0, 0)
-	data, err := ioutil.ReadAll(v.vmxfile)
+	// Loads VMX file in memory
+	err := v.vmxfile.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	vm := new(vmx.VirtualMachine)
-
-	err = vmx.Unmarshal(data, vm)
-	if err != nil {
-		return nil, err
-	}
-
+	model := v.vmxfile.model
 	cddvds := make([]*CDDVDConfig, 0)
 
 	var wg sync.WaitGroup
@@ -219,7 +175,7 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	// go iterate ide devices
 	go func() {
 		defer wg.Done()
-		for _, device := range vm.IDEDevices {
+		for _, device := range model.IDEDevices {
 			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
 				cddvds = append(cddvds, &CDDVDConfig{
 					ID:       device.VMXID,
@@ -233,7 +189,7 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	// go iterate scsi devices
 	go func() {
 		defer wg.Done()
-		for _, device := range vm.SCSIDevices {
+		for _, device := range model.SCSIDevices {
 			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
 				cddvds = append(cddvds, &CDDVDConfig{
 					ID:       device.VMXID,
@@ -247,7 +203,7 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	// go iterate sata devices
 	go func() {
 		defer wg.Done()
-		for _, device := range vm.SATADevices {
+		for _, device := range model.SATADevices {
 			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
 				cddvds = append(cddvds, &CDDVDConfig{
 					ID:       device.VMXID,
@@ -267,23 +223,16 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 // TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
 // in host.OpenVM just once.
 func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
-	// unmarshal vmx
-	v.vmxfile.Seek(0, 0)
-	data, err := ioutil.ReadAll(v.vmxfile)
+	err := v.vmxfile.Read()
 	if err != nil {
 		return nil, err
 	}
 
-	vm := new(vmx.VirtualMachine)
-
-	err = vmx.Unmarshal(data, vm)
-	if err != nil {
-		return nil, err
-	}
-
+	model := v.vmxfile.model
 	cddvd := &CDDVDConfig{}
+
 	if strings.HasPrefix(ID, string(IDE)) {
-		for _, device := range vm.IDEDevices {
+		for _, device := range model.IDEDevices {
 			if ID == device.VMXID {
 				cddvd.Bus = IDE
 				cddvd.Filename = device.Filename
@@ -293,7 +242,7 @@ func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
 	}
 
 	if strings.HasPrefix(ID, string(SCSI)) {
-		for _, device := range vm.SCSIDevices {
+		for _, device := range model.SCSIDevices {
 			if ID == device.VMXID {
 				cddvd.Bus = SCSI
 				cddvd.Filename = device.Filename
@@ -303,7 +252,7 @@ func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
 	}
 
 	if strings.HasPrefix(ID, string(SATA)) {
-		for _, device := range vm.SATADevices {
+		for _, device := range model.SATADevices {
 			if ID == device.VMXID {
 				cddvd.Bus = SATA
 				cddvd.Filename = device.Filename

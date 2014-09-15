@@ -10,8 +10,66 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"sync"
+
+	"github.com/cloudescape/govmx"
 )
 
+// Manages VMX file
+type VMXFile struct {
+	sync.Mutex
+	model *vmx.VirtualMachine
+	path  string
+}
+
+func NewVMXFile(fpath string) (*VMXFile, error) {
+	return &VMXFile{
+		path: fpath,
+	}, nil
+}
+
+// Reads VMX file from disk and unmarshals it
+func (vmxfile *VMXFile) Read() error {
+	data, err := ioutil.ReadFile(vmxfile.path)
+	if err != nil {
+		return err
+	}
+
+	model := new(vmx.VirtualMachine)
+
+	err = vmx.Unmarshal(data, model)
+	if err != nil {
+		return err
+	}
+
+	vmxfile.model = model
+
+	return nil
+}
+
+// Marshals and writes VMX file to disk
+func (vmxfile *VMXFile) Write() error {
+	file, err := os.Create(vmxfile.path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	data, err := vmx.Marshal(vmxfile.model)
+	if err != nil {
+		return err
+	}
+
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO(c4milo): Legacy function, this is to be removed once we migrate
+// the dependant code
 func readVmx(path string) (map[string]string, error) {
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -30,6 +88,8 @@ func readVmx(path string) (map[string]string, error) {
 	return vmx, nil
 }
 
+// TODO(c4milo): Legacy function, this is to be removed once we migrate
+// the dependant code
 func writeVmx(path string, vmx map[string]string) error {
 	f, err := os.Create(path)
 	if err != nil {
