@@ -6,6 +6,8 @@ package vix
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
+	"sync"
 
 	"github.com/cloudescape/govmx"
 )
@@ -13,10 +15,17 @@ import (
 // Bus type to use when attaching CD/DVD drives and disks.
 type BusType string
 
+// Disk controllers
 const (
 	IDE  BusType = "ide"
 	SCSI BusType = "scsi"
 	SATA BusType = "sata"
+)
+
+// Device Type
+const (
+	CDROM_IMAGE string = "cdrom-image"
+	CDROM_RAW   string = "cdrom-raw"
 )
 
 // CD/DVD configuration
@@ -31,6 +40,8 @@ type CDDVDConfig struct {
 
 // Attaches a CD/DVD drive to the virtual machine.
 // TODO(c4milo): make it thread safe
+// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
+// in host.OpenVM just once.
 func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
@@ -58,9 +69,9 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 		device := vmx.IDEDevice{}
 		if config.Filename != "" {
 			device.Filename = config.Filename
-			device.Type = "cdrom-image"
+			device.Type = CDROM_IMAGE
 		} else {
-			device.Type = "cdrom-raw"
+			device.Type = CDROM_RAW
 			device.Autodetect = true
 		}
 
@@ -71,9 +82,9 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 		device := vmx.SCSIDevice{}
 		if config.Filename != "" {
 			device.Filename = config.Filename
-			device.Type = "cdrom-image"
+			device.Type = CDROM_IMAGE
 		} else {
-			device.Type = "cdrom-raw"
+			device.Type = CDROM_RAW
 			device.Autodetect = true
 		}
 
@@ -84,9 +95,9 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 		device := vmx.SATADevice{}
 		if config.Filename != "" {
 			device.Filename = config.Filename
-			device.Type = "cdrom-image"
+			device.Type = CDROM_IMAGE
 		} else {
-			device.Type = "cdrom-raw"
+			device.Type = CDROM_RAW
 			device.Autodetect = true
 		}
 
@@ -114,6 +125,8 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 
 // Detaches a CD/DVD device from the virtual machine
 // TODO(c4milo): make it thread safe
+// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
+// in host.OpenVM just once.
 func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
@@ -181,7 +194,123 @@ func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 	return nil
 }
 
-// Returns the list of currently attached CD/DVD devices
+// Returns an unordered slice of currently attached CD/DVD devices on any bus.
+// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
+// in host.OpenVM just once.
 func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
+	// unmarshal vmx
+	v.vmxfile.Seek(0, 0)
+	data, err := ioutil.ReadAll(v.vmxfile)
+	if err != nil {
+		return nil, err
+	}
+
+	vm := new(vmx.VirtualMachine)
+
+	err = vmx.Unmarshal(data, vm)
+	if err != nil {
+		return nil, err
+	}
+
+	cddvds := make([]*CDDVDConfig, 0)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	// go iterate ide devices
+	go func() {
+		defer wg.Done()
+		for _, device := range vm.IDEDevices {
+			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
+				cddvds = append(cddvds, &CDDVDConfig{
+					ID:       device.VMXID,
+					Bus:      IDE,
+					Filename: device.Filename,
+				})
+			}
+		}
+	}()
+
+	// go iterate scsi devices
+	go func() {
+		defer wg.Done()
+		for _, device := range vm.SCSIDevices {
+			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
+				cddvds = append(cddvds, &CDDVDConfig{
+					ID:       device.VMXID,
+					Bus:      IDE,
+					Filename: device.Filename,
+				})
+			}
+		}
+	}()
+
+	// go iterate sata devices
+	go func() {
+		defer wg.Done()
+		for _, device := range vm.SATADevices {
+			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
+				cddvds = append(cddvds, &CDDVDConfig{
+					ID:       device.VMXID,
+					Bus:      IDE,
+					Filename: device.Filename,
+				})
+			}
+		}
+	}()
+	wg.Wait()
+
+	return cddvds, nil
+}
+
+// Returns the CD/DVD drive identified by ID
+// This function depends entirely on how GoVMX identifies array's elements
+// TODO(c4milo): Avoid unmarshaling in this function, it should be done somewhere
+// in host.OpenVM just once.
+func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
+	// unmarshal vmx
+	v.vmxfile.Seek(0, 0)
+	data, err := ioutil.ReadAll(v.vmxfile)
+	if err != nil {
+		return nil, err
+	}
+
+	vm := new(vmx.VirtualMachine)
+
+	err = vmx.Unmarshal(data, vm)
+	if err != nil {
+		return nil, err
+	}
+
+	cddvd := &CDDVDConfig{}
+	if strings.HasPrefix(ID, string(IDE)) {
+		for _, device := range vm.IDEDevices {
+			if ID == device.VMXID {
+				cddvd.Bus = IDE
+				cddvd.Filename = device.Filename
+				return cddvd, nil
+			}
+		}
+	}
+
+	if strings.HasPrefix(ID, string(SCSI)) {
+		for _, device := range vm.SCSIDevices {
+			if ID == device.VMXID {
+				cddvd.Bus = SCSI
+				cddvd.Filename = device.Filename
+				return cddvd, nil
+			}
+		}
+	}
+
+	if strings.HasPrefix(ID, string(SATA)) {
+		for _, device := range vm.SATADevices {
+			if ID == device.VMXID {
+				cddvd.Bus = SATA
+				cddvd.Filename = device.Filename
+				return cddvd, nil
+			}
+		}
+	}
+
 	return nil, nil
 }
