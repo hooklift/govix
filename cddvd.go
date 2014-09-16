@@ -6,7 +6,6 @@ package vix
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/cloudescape/govmx"
 )
@@ -147,50 +146,25 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	model := v.vmxfile.model
 	cddvds := make([]*CDDVDConfig, 0)
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-	// go iterate ide devices
-	go func() {
-		defer wg.Done()
-		for _, device := range model.IDEDevices {
-			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
-				cddvds = append(cddvds, &CDDVDConfig{
-					ID:       device.VMXID,
-					Bus:      IDE,
-					Filename: device.Filename,
-				})
-			}
+	handle := func(d vmx.Device, Bus BusType) {
+		if d.Type == CDROM_IMAGE || d.Type == CDROM_RAW {
+			cddvds = append(cddvds, &CDDVDConfig{
+				ID:       d.VMXID,
+				Bus:      Bus,
+				Filename: d.Filename,
+			})
 		}
-	}()
+	}
 
-	// go iterate scsi devices
-	go func() {
-		defer wg.Done()
-		for _, device := range model.SCSIDevices {
-			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
-				cddvds = append(cddvds, &CDDVDConfig{
-					ID:       device.VMXID,
-					Bus:      IDE,
-					Filename: device.Filename,
-				})
-			}
-		}
-	}()
-
-	// go iterate sata devices
-	go func() {
-		defer wg.Done()
-		for _, device := range model.SATADevices {
-			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
-				cddvds = append(cddvds, &CDDVDConfig{
-					ID:       device.VMXID,
-					Bus:      IDE,
-					Filename: device.Filename,
-				})
-			}
-		}
-	}()
-	wg.Wait()
+	for _, d := range model.IDEDevices {
+		handle(d.Device, IDE)
+	}
+	for _, d := range model.SCSIDevices {
+		handle(d.Device, SCSI)
+	}
+	for _, d := range model.SATADevices {
+		handle(d.Device, SATA)
+	}
 
 	return cddvds, nil
 }
@@ -206,33 +180,30 @@ func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
 	model := v.vmxfile.model
 	cddvd := &CDDVDConfig{}
 
+	handle := func(ID string, d vmx.Device, Bus BusType) *CDDVDConfig {
+		if ID == d.VMXID {
+			cddvd.Bus = Bus
+			cddvd.Filename = d.Filename
+			return cddvd
+		}
+		return nil
+	}
+
 	if strings.HasPrefix(ID, string(IDE)) {
-		for _, device := range model.IDEDevices {
-			if ID == device.VMXID {
-				cddvd.Bus = IDE
-				cddvd.Filename = device.Filename
-				return cddvd, nil
-			}
+		for _, d := range model.IDEDevices {
+			return handle(ID, d.Device, IDE), nil
 		}
 	}
 
 	if strings.HasPrefix(ID, string(SCSI)) {
-		for _, device := range model.SCSIDevices {
-			if ID == device.VMXID {
-				cddvd.Bus = SCSI
-				cddvd.Filename = device.Filename
-				return cddvd, nil
-			}
+		for _, d := range model.SCSIDevices {
+			return handle(ID, d.Device, SCSI), nil
 		}
 	}
 
 	if strings.HasPrefix(ID, string(SATA)) {
-		for _, device := range model.SATADevices {
-			if ID == device.VMXID {
-				cddvd.Bus = SATA
-				cddvd.Filename = device.Filename
-				return cddvd, nil
-			}
+		for _, d := range model.SATADevices {
+			return handle(ID, d.Device, SATA), nil
 		}
 	}
 
