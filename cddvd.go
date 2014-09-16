@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"sync"
 
 	"github.com/cloudescape/govmx"
 )
@@ -181,63 +180,33 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	v.vmxfile.Seek(0, 0)
 	data, err := ioutil.ReadAll(v.vmxfile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read file: %v", err)
 	}
 
 	vm := new(vmx.VirtualMachine)
-
-	err = vmx.Unmarshal(data, vm)
-	if err != nil {
-		return nil, err
+	if err := vmx.Unmarshal(data, vm); err != nil {
+		return nil, fmt.Errorf("unmarshal: %v", err)
 	}
 
-	cddvds := make([]*CDDVDConfig, 0)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	// go iterate ide devices
-	go func() {
-		defer wg.Done()
-		for _, device := range vm.IDEDevices {
-			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
-				cddvds = append(cddvds, &CDDVDConfig{
-					ID:       device.VMXID,
-					Bus:      IDE,
-					Filename: device.Filename,
-				})
-			}
+	var cddvds []*CDDVDConfig
+	handle := func(d vmx.Device) {
+		if d.Type == CDROM_IMAGE || d.Type == CDROM_RAW {
+			cddvds = append(cddvds, &CDDVDConfig{
+				ID:       d.VMXID,
+				Bus:      IDE,
+				Filename: d.Filename,
+			})
 		}
-	}()
-
-	// go iterate scsi devices
-	go func() {
-		defer wg.Done()
-		for _, device := range vm.SCSIDevices {
-			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
-				cddvds = append(cddvds, &CDDVDConfig{
-					ID:       device.VMXID,
-					Bus:      IDE,
-					Filename: device.Filename,
-				})
-			}
-		}
-	}()
-
-	// go iterate sata devices
-	go func() {
-		defer wg.Done()
-		for _, device := range vm.SATADevices {
-			if device.Type == CDROM_IMAGE || device.Type == CDROM_RAW {
-				cddvds = append(cddvds, &CDDVDConfig{
-					ID:       device.VMXID,
-					Bus:      IDE,
-					Filename: device.Filename,
-				})
-			}
-		}
-	}()
-	wg.Wait()
-
+	}
+	for _, d := range vm.IDEDevices {
+		handle(d.Device)
+	}
+	for _, d := range vm.SCSIDevices {
+		handle(d.Device)
+	}
+	for _, d := range vm.SATADevices {
+		handle(d.Device)
+	}
 	return cddvds, nil
 }
 
