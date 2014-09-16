@@ -7,10 +7,10 @@ import (
 	"testing"
 )
 
-func TestReadVmx(t *testing.T) {
+func TestVMXFileRead(t *testing.T) {
 
 }
 
-func TestWriteVmx(t *testing.T) {
+func TestVMXFileWrite(t *testing.T) {
 
 }
