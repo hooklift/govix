@@ -9,10 +9,7 @@ package vix
 */
 import "C"
 
-import (
-	"runtime"
-	"unsafe"
-)
+import "unsafe"
 
 type Host struct {
 	Provider Provider
@@ -155,21 +152,7 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 		}
 	}
 
-	vmxfile := &VMXFile{
-		path: vmxFile,
-	}
-
-	// Loads VMX file in memory
-	vmxfile.Read()
-
-	vm := &VM{
-		handle:  vmHandle,
-		vmxfile: vmxfile,
-	}
-
-	runtime.SetFinalizer(vm, cleanupVM)
-
-	return vm, nil
+	return NewVirtualMachine(vmHandle, vmxFile)
 }
 
 // This function adds a virtual machine to the host's inventory.

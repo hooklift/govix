@@ -10,18 +10,41 @@ package vix
 import "C"
 
 import (
+	"fmt"
 	"math"
 	"os"
 	"runtime"
 	"strconv"
 	"time"
 	"unsafe"
+
+	"github.com/cloudescape/govmx"
 )
 
 type VM struct {
 	// Internal VIX handle
 	handle  C.VixHandle
 	vmxfile *VMXFile
+}
+
+func NewVirtualMachine(handle C.VixHandle, vmxpath string) (*VM, error) {
+	vmxfile := &VMXFile{
+		path: vmxpath,
+	}
+
+	// Loads VMX file in memory
+	err := vmxfile.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	vm := &VM{
+		handle:  handle,
+		vmxfile: vmxfile,
+	}
+
+	runtime.SetFinalizer(vm, cleanupVM)
+	return vm, nil
 }
 
 // Returns number of virtual CPUs configured for
@@ -542,7 +565,7 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 		C.VIX_INVALID_HANDLE,      // snapshotHandle
 		C.VixCloneType(cloneType), // cloneType
 		dstVmxFile,                // destConfigPathName
-		0,                         //options,
+		0,                         // options,
 		C.VIX_INVALID_HANDLE,      // propertyListHandle
 		nil,                       // callbackProc
 		nil)                       // clientData
@@ -562,13 +585,7 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 		}
 	}
 
-	vm := &VM{
-		handle: clonedHandle,
-	}
-
-	runtime.SetFinalizer(vm, cleanupVM)
-
-	return vm, nil
+	return NewVirtualMachine(clonedHandle, destVmxFile)
 }
 
 // Private function to clean up vm handle
@@ -1936,7 +1953,7 @@ func (v *VM) WaitForToolsInGuest(timeout time.Duration) error {
 	return nil
 }
 
-func (v *VM) changeVmxSetting(name string, value string) error {
+func (v *VM) updateVMX(updateFunc func(model *vmx.VirtualMachine) error) error {
 	isVmRunning, err := v.IsRunning()
 	if err != nil {
 		return err
@@ -1944,25 +1961,40 @@ func (v *VM) changeVmxSetting(name string, value string) error {
 
 	if isVmRunning {
 		return &VixError{
-			Operation: "vm.changeVmxSetting",
+			Operation: "vm.updateVMX",
 			Code:      100000,
 			Text:      "The VM has to be powered off in order to change its vmx settings",
 		}
 	}
 
-	vmxPath, err := v.VmxPath()
+	err = v.vmxfile.Read()
 	if err != nil {
-		return err
+		return &VixError{
+			Operation: "vm.updateVMX",
+			Code:      300001,
+			Text:      fmt.Sprintf("Error reading vmx file: %s", err),
+		}
 	}
 
-	vmx, err := readVmx(vmxPath)
+	err = updateFunc(v.vmxfile.model)
 	if err != nil {
-		return err
+		return &VixError{
+			Operation: "vm.updateVMX",
+			Code:      300002,
+			Text:      fmt.Sprintf("Error changing vmx value: %s", err),
+		}
 	}
 
-	vmx[name] = value
+	err = v.vmxfile.Write()
+	if err != nil {
+		return &VixError{
+			Operation: "vm.updateVMX",
+			Code:      300003,
+			Text:      fmt.Sprintf("Error writing vmx file: %s", err),
+		}
+	}
 
-	return writeVmx(vmxPath, vmx)
+	return nil
 }
 
 // Sets memory size in megabytes
@@ -1979,52 +2011,35 @@ func (v *VM) SetMemorySize(size uint) error {
 	if size%4 != 0 {
 		size = uint(math.Floor(float64((size / 4) * 4)))
 	}
-	memsize := strconv.Itoa(int(size))
 
-	return v.changeVmxSetting("memsize", memsize)
+	return v.updateVMX(func(model *vmx.VirtualMachine) error {
+		model.Memsize = size
+		return nil
+	})
 }
 
 // Sets number of virtual cpus assigned to this machine.
 //
 // VM has to be powered off in order to change
 // this parameter
-func (v *VM) SetNumberVcpus(vcpus uint8) error {
+func (v *VM) SetNumberVcpus(vcpus uint) error {
 	if vcpus < 1 {
 		vcpus = 1
 	}
-	numvcpus := strconv.Itoa(int(vcpus))
-	return v.changeVmxSetting("numvcpus", numvcpus)
+
+	return v.updateVMX(func(model *vmx.VirtualMachine) error {
+		model.NumvCPUs = vcpus
+		return nil
+	})
 }
 
 // Sets virtual machine name
 func (v *VM) SetDisplayName(name string) error {
-	return v.changeVmxSetting("displayname", name)
+	return v.updateVMX(func(model *vmx.VirtualMachine) error {
+		model.DisplayName = name
+		return nil
+	})
 }
-
-// func (v *VM) readVmxVariable(name string) (string, error) {
-// 	val, err := v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, name)
-// 	if err != nil {
-// 		return "", err
-// 	}
-
-// 	if val == "" {
-// 		vmxPath, err := v.VmxPath()
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		vmx, err := readVmx(vmxPath)
-// 		if err != nil {
-// 			return "", err
-// 		}
-
-// 		if val, ok := vmx[name]; ok {
-// 			return val, nil
-// 		}
-// 	}
-
-// 	return "", nil
-// }
 
 // Gets virtual machine name
 func (v *VM) DisplayName() (string, error) {
@@ -2033,15 +2048,25 @@ func (v *VM) DisplayName() (string, error) {
 
 // Sets annotations for the virtual machine
 func (v *VM) SetAnnotation(text string) error {
-	return v.changeVmxSetting("annotation", text)
+	return v.updateVMX(func(model *vmx.VirtualMachine) error {
+		model.Annotation = text
+		return nil
+	})
 }
 
 // Returns the description or annotations added to the virtual machine
 func (v *VM) Annotation() (string, error) {
 	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "annotation")
-	//return v.readVmxVariable("annotation")
 }
 
-// func (v *VM) SetVirtualHwVersion(version string) error {
-// 	return v.changeVmxSetting("virtualhw.version", version)
-// }
+func (v *VM) SetVirtualHwVersion(version string) error {
+	return v.updateVMX(func(model *vmx.VirtualMachine) error {
+		version, err := strconv.ParseInt(version, 10, 32)
+		if err != nil {
+			return err
+		}
+		model.Vhardware.Compat = "hosted"
+		model.Vhardware.Version = int(version)
+		return nil
+	})
+}
