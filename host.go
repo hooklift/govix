@@ -152,9 +152,7 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 		}
 	}
 
-	vm := NewVirtualMachine(vmHandle, vmxFile)
-
-	return vm, nil
+	return NewVirtualMachine(vmHandle, vmxFile)
 }
 
 // This function adds a virtual machine to the host's inventory.

@@ -11,7 +11,6 @@ import "C"
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"runtime"
@@ -28,13 +27,16 @@ type VM struct {
 	vmxfile *VMXFile
 }
 
-func NewVirtualMachine(handle C.VixHandle, vmxpath string) *VM {
+func NewVirtualMachine(handle C.VixHandle, vmxpath string) (*VM, error) {
 	vmxfile := &VMXFile{
 		path: vmxpath,
 	}
 
 	// Loads VMX file in memory
-	vmxfile.Read()
+	err := vmxfile.Read()
+	if err != nil {
+		return nil, err
+	}
 
 	vm := &VM{
 		handle:  handle,
@@ -42,7 +44,7 @@ func NewVirtualMachine(handle C.VixHandle, vmxpath string) *VM {
 	}
 
 	runtime.SetFinalizer(vm, cleanupVM)
-	return vm
+	return vm, nil
 }
 
 // Returns number of virtual CPUs configured for
@@ -583,9 +585,7 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 		}
 	}
 
-	vm := NewVirtualMachine(clonedHandle, destVmxFile)
-
-	return vm, nil
+	return NewVirtualMachine(clonedHandle, destVmxFile)
 }
 
 // Private function to clean up vm handle
@@ -2013,7 +2013,6 @@ func (v *VM) SetMemorySize(size uint) error {
 	}
 
 	return v.updateVMX(func(model *vmx.VirtualMachine) error {
-		log.Printf("[DEBUG] ===========> memory size: %d\n", size)
 		model.Memsize = size
 		return nil
 	})
