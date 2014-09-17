@@ -27,7 +27,7 @@ const (
 )
 
 // CD/DVD configuration
-type CDDVDConfig struct {
+type CDDVDDrive struct {
 	ID string
 	// Either IDE, SCSI or SATA
 	Bus BusType
@@ -37,7 +37,7 @@ type CDDVDConfig struct {
 }
 
 // Attaches a CD/DVD drive to the virtual machine.
-func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
+func (v *VM) AttachCDDVD(config *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
 			Operation: "vm.AttachCDDVD",
@@ -81,7 +81,7 @@ func (v *VM) AttachCDDVD(config *CDDVDConfig) error {
 }
 
 // Detaches a CD/DVD device from the virtual machine
-func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
+func (v *VM) DetachCDDVD(config *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
 			Operation: "vm.DetachCDDVD",
@@ -136,7 +136,7 @@ func (v *VM) DetachCDDVD(config *CDDVDConfig) error {
 }
 
 // Returns an unordered slice of currently attached CD/DVD devices on any bus.
-func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
+func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 	// Loads VMX file in memory
 	err := v.vmxfile.Read()
 	if err != nil {
@@ -144,11 +144,11 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	}
 
 	model := v.vmxfile.model
-	cddvds := make([]*CDDVDConfig, 0)
+	cddvds := make([]*CDDVDDrive, 0)
 
 	handle := func(d vmx.Device, Bus BusType) {
 		if d.Type == CDROM_IMAGE || d.Type == CDROM_RAW {
-			cddvds = append(cddvds, &CDDVDConfig{
+			cddvds = append(cddvds, &CDDVDDrive{
 				ID:       d.VMXID,
 				Bus:      Bus,
 				Filename: d.Filename,
@@ -171,16 +171,16 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 
 // Returns the CD/DVD drive identified by ID
 // This function depends entirely on how GoVMX identifies array's elements
-func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
+func (v *VM) CDDVD(ID string) (*CDDVDDrive, error) {
 	err := v.vmxfile.Read()
 	if err != nil {
 		return nil, err
 	}
 
 	model := v.vmxfile.model
-	cddvd := &CDDVDConfig{}
+	cddvd := &CDDVDDrive{}
 
-	handle := func(ID string, d vmx.Device, Bus BusType) *CDDVDConfig {
+	handle := func(ID string, d vmx.Device, Bus BusType) *CDDVDDrive {
 		if ID == d.VMXID {
 			cddvd.Bus = Bus
 			cddvd.Filename = d.Filename
