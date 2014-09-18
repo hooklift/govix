@@ -37,7 +37,7 @@ type CDDVDDrive struct {
 }
 
 // Attaches a CD/DVD drive to the virtual machine.
-func (v *VM) AttachCDDVD(config *CDDVDDrive) error {
+func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
 			Operation: "vm.AttachCDDVD",
@@ -51,8 +51,8 @@ func (v *VM) AttachCDDVD(config *CDDVDDrive) error {
 	model := v.vmxfile.model
 
 	device := vmx.Device{}
-	if config.Filename != "" {
-		device.Filename = config.Filename
+	if drive.Filename != "" {
+		device.Filename = drive.Filename
 		device.Type = CDROM_IMAGE
 	} else {
 		device.Type = CDROM_RAW
@@ -62,7 +62,11 @@ func (v *VM) AttachCDDVD(config *CDDVDDrive) error {
 	device.Present = true
 	device.StartConnected = true
 
-	switch config.Bus {
+	if drive.Bus == "" {
+		drive.Bus = IDE
+	}
+
+	switch drive.Bus {
 	case IDE:
 		model.IDEDevices = append(model.IDEDevices, vmx.IDEDevice{Device: device})
 	case SCSI:
@@ -73,7 +77,7 @@ func (v *VM) AttachCDDVD(config *CDDVDDrive) error {
 		return &VixError{
 			Operation: "vm.AttachCDDVD",
 			Code:      200001,
-			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", config.Bus),
+			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", drive.Bus),
 		}
 	}
 
@@ -81,7 +85,7 @@ func (v *VM) AttachCDDVD(config *CDDVDDrive) error {
 }
 
 // Detaches a CD/DVD device from the virtual machine
-func (v *VM) DetachCDDVD(config *CDDVDDrive) error {
+func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
 		return &VixError{
 			Operation: "vm.DetachCDDVD",
@@ -98,10 +102,10 @@ func (v *VM) DetachCDDVD(config *CDDVDDrive) error {
 
 	model := v.vmxfile.model
 
-	switch config.Bus {
+	switch drive.Bus {
 	case IDE:
 		for i, device := range model.IDEDevices {
-			if config.ID == device.VMXID {
+			if drive.ID == device.VMXID {
 				// This method of removing the element avoids memory leaks
 				copy(model.IDEDevices[i:], model.IDEDevices[i+1:])
 				model.IDEDevices[len(model.IDEDevices)-1] = vmx.IDEDevice{}
@@ -110,7 +114,7 @@ func (v *VM) DetachCDDVD(config *CDDVDDrive) error {
 		}
 	case SCSI:
 		for i, device := range model.SCSIDevices {
-			if config.ID == device.VMXID {
+			if drive.ID == device.VMXID {
 				copy(model.SCSIDevices[i:], model.SCSIDevices[i+1:])
 				model.SCSIDevices[len(model.SCSIDevices)-1] = vmx.SCSIDevice{}
 				model.SCSIDevices = model.SCSIDevices[:len(model.SCSIDevices)-1]
@@ -118,7 +122,7 @@ func (v *VM) DetachCDDVD(config *CDDVDDrive) error {
 		}
 	case SATA:
 		for i, device := range model.SATADevices {
-			if config.ID == device.VMXID {
+			if drive.ID == device.VMXID {
 				copy(model.SATADevices[i:], model.SATADevices[i+1:])
 				model.SATADevices[len(model.SATADevices)-1] = vmx.SATADevice{}
 				model.SATADevices = model.SATADevices[:len(model.SATADevices)-1]
@@ -128,7 +132,7 @@ func (v *VM) DetachCDDVD(config *CDDVDDrive) error {
 		return &VixError{
 			Operation: "vm.DetachCDDVD",
 			Code:      200003,
-			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", config.Bus),
+			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", drive.Bus),
 		}
 	}
 
@@ -167,6 +171,30 @@ func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 	}
 
 	return cddvds, nil
+}
+
+func (v *VM) RemoveAllCDDVDDrives() error {
+	drives, err := v.CDDVDs()
+	if err != nil {
+		return &VixError{
+			Operation: "vm.RemoveAllCDDVDDrives",
+			Code:      200004,
+			Text:      fmt.Sprintf("Error listing CD/DVD Drives: %s\n", err),
+		}
+	}
+
+	for _, d := range drives {
+		err := v.DetachCDDVD(d)
+		if err != nil {
+			return &VixError{
+				Operation: "vm.RemoveAllCDDVDDrives",
+				Code:      200004,
+				Text:      fmt.Sprintf("Error removing CD/DVD Drive %v, error: %s\n", d, err),
+			}
+		}
+	}
+
+	return nil
 }
 
 // Returns the CD/DVD drive identified by ID
