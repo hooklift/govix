@@ -189,7 +189,7 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	}
 
 	var cddvds []*CDDVDConfig
-	handle := func(d vmx.Device) {
+	vm.WalkDevices(func(d vmx.Device) bool {
 		if d.Type == CDROM_IMAGE || d.Type == CDROM_RAW {
 			cddvds = append(cddvds, &CDDVDConfig{
 				ID:       d.VMXID,
@@ -197,16 +197,8 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 				Filename: d.Filename,
 			})
 		}
-	}
-	for _, d := range vm.IDEDevices {
-		handle(d.Device)
-	}
-	for _, d := range vm.SCSIDevices {
-		handle(d.Device)
-	}
-	for _, d := range vm.SATADevices {
-		handle(d.Device)
-	}
+		return false // keep going
+	})
 	return cddvds, nil
 }
 
@@ -229,36 +221,26 @@ func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
 		return nil, err
 	}
 
-	cddvd := &CDDVDConfig{}
-	if strings.HasPrefix(ID, string(IDE)) {
-		for _, device := range vm.IDEDevices {
-			if ID == device.VMXID {
-				cddvd.Bus = IDE
-				cddvd.Filename = device.Filename
-				return cddvd, nil
-			}
-		}
+	var bus string
+	switch {
+	case strings.HasPrefix(ID, string(IDE)):
+		bus = IDE
+	case strings.HasPrefix(ID, string(SCSI)):
+		bus = SCSI
+	case strings.HasPrefix(ID, string(SATA)):
+		bus = SATA
 	}
-
-	if strings.HasPrefix(ID, string(SCSI)) {
-		for _, device := range vm.SCSIDevices {
-			if ID == device.VMXID {
-				cddvd.Bus = SCSI
-				cddvd.Filename = device.Filename
-				return cddvd, nil
-			}
+	var filename string
+	found := vm.WalkDevices(func(d vmx.Device) bool {
+		if ID == d.VMXID {
+			filename = d.Filename
+			return true // stop walk
 		}
-	}
+		return false // keep going
+	}, bus)
 
-	if strings.HasPrefix(ID, string(SATA)) {
-		for _, device := range vm.SATADevices {
-			if ID == device.VMXID {
-				cddvd.Bus = SATA
-				cddvd.Filename = device.Filename
-				return cddvd, nil
-			}
-		}
+	if !found {
+		return nil, nil
 	}
-
-	return nil, nil
+	return &CDDVDConfig{Bus: bus, Filename: filename}, nil
 }
