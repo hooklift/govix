@@ -135,15 +135,7 @@ func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 
 	var cddvds []*CDDVDDrive
 	model.WalkDevices(func(d vmx.Device) {
-		var bus vmx.BusType
-		switch {
-		case strings.HasPrefix(d.VMXID, string(vmx.IDE)):
-			bus = vmx.IDE
-		case strings.HasPrefix(d.VMXID, string(vmx.SCSI)):
-			bus = vmx.SCSI
-		case strings.HasPrefix(d.VMXID, string(vmx.SATA)):
-			bus = vmx.SATA
-		}
+		bus := BusTypeFromID(d.VMXID)
 
 		if d.Type == vmx.CDROM_IMAGE || d.Type == vmx.CDROM_RAW {
 			cddvds = append(cddvds, &CDDVDDrive{
@@ -180,16 +172,8 @@ func (v *VM) RemoveAllCDDVDDrives() error {
 	return nil
 }
 
-// Returns the CD/DVD drive identified by ID
-// This function depends entirely on how GoVMX identifies slice's elements
-func (v *VM) CDDVD(ID string) (*CDDVDDrive, error) {
-	err := v.vmxfile.Read()
-	if err != nil {
-		return nil, err
-	}
-
-	model := v.vmxfile.model
-
+// Gets BusType from device ID
+func BusTypeFromID(ID string) vmx.BusType {
 	var bus vmx.BusType
 	switch {
 	case strings.HasPrefix(ID, string(vmx.IDE)):
@@ -199,6 +183,20 @@ func (v *VM) CDDVD(ID string) (*CDDVDDrive, error) {
 	case strings.HasPrefix(ID, string(vmx.SATA)):
 		bus = vmx.SATA
 	}
+
+	return bus
+}
+
+// Returns the CD/DVD drive identified by ID
+// This function depends entirely on how GoVMX identifies slice's elements
+func (v *VM) CDDVD(ID string) (*CDDVDDrive, error) {
+	err := v.vmxfile.Read()
+	if err != nil {
+		return nil, err
+	}
+
+	model := v.vmxfile.model
+	bus := BusTypeFromID(ID)
 
 	var filename string
 	found := model.FindDevice(func(d vmx.Device) bool {
