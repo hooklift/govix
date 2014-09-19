@@ -10,12 +10,6 @@ import (
 	"github.com/cloudescape/govmx"
 )
 
-// Device Type
-const (
-	CDROM_IMAGE string = "cdrom-image"
-	CDROM_RAW   string = "cdrom-raw"
-)
-
 // CD/DVD configuration
 type CDDVDDrive struct {
 	ID string
@@ -43,9 +37,9 @@ func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 	device := vmx.Device{}
 	if drive.Filename != "" {
 		device.Filename = drive.Filename
-		device.Type = CDROM_IMAGE
+		device.Type = vmx.CDROM_IMAGE
 	} else {
-		device.Type = CDROM_RAW
+		device.Type = vmx.CDROM_RAW
 		device.Autodetect = true
 	}
 
@@ -151,7 +145,7 @@ func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 			bus = vmx.SATA
 		}
 
-		if d.Type == CDROM_IMAGE || d.Type == CDROM_RAW {
+		if d.Type == vmx.CDROM_IMAGE || d.Type == vmx.CDROM_RAW {
 			cddvds = append(cddvds, &CDDVDDrive{
 				ID:       d.VMXID,
 				Bus:      bus,
