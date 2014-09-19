@@ -10,16 +10,6 @@ import (
 	"github.com/cloudescape/govmx"
 )
 
-// Bus type to use when attaching CD/DVD drives and disks.
-type BusType string
-
-// Disk controllers
-const (
-	IDE  BusType = "ide"
-	SCSI BusType = "scsi"
-	SATA BusType = "sata"
-)
-
 // Device Type
 const (
 	CDROM_IMAGE string = "cdrom-image"
@@ -30,7 +20,7 @@ const (
 type CDDVDDrive struct {
 	ID string
 	// Either IDE, SCSI or SATA
-	Bus BusType
+	Bus vmx.BusType
 	// Used only when attaching image files. Ex: ISO images
 	// If you just want to attach a raw cdrom device leave it empty
 	Filename string
@@ -63,15 +53,15 @@ func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 	device.StartConnected = true
 
 	if drive.Bus == "" {
-		drive.Bus = IDE
+		drive.Bus = vmx.IDE
 	}
 
 	switch drive.Bus {
-	case IDE:
+	case vmx.IDE:
 		model.IDEDevices = append(model.IDEDevices, vmx.IDEDevice{Device: device})
-	case SCSI:
+	case vmx.SCSI:
 		model.SCSIDevices = append(model.SCSIDevices, vmx.SCSIDevice{Device: device})
-	case SATA:
+	case vmx.SATA:
 		model.SATADevices = append(model.SATADevices, vmx.SATADevice{Device: device})
 	default:
 		return &VixError{
@@ -103,7 +93,7 @@ func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 	model := v.vmxfile.model
 
 	switch drive.Bus {
-	case IDE:
+	case vmx.IDE:
 		for i, device := range model.IDEDevices {
 			if drive.ID == device.VMXID {
 				// This method of removing the element avoids memory leaks
@@ -112,7 +102,7 @@ func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 				model.IDEDevices = model.IDEDevices[:len(model.IDEDevices)-1]
 			}
 		}
-	case SCSI:
+	case vmx.SCSI:
 		for i, device := range model.SCSIDevices {
 			if drive.ID == device.VMXID {
 				copy(model.SCSIDevices[i:], model.SCSIDevices[i+1:])
@@ -120,7 +110,7 @@ func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 				model.SCSIDevices = model.SCSIDevices[:len(model.SCSIDevices)-1]
 			}
 		}
-	case SATA:
+	case vmx.SATA:
 		for i, device := range model.SATADevices {
 			if drive.ID == device.VMXID {
 				copy(model.SATADevices[i:], model.SATADevices[i+1:])
@@ -148,28 +138,27 @@ func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 	}
 
 	model := v.vmxfile.model
-	cddvds := make([]*CDDVDDrive, 0)
 
-	handle := func(d vmx.Device, Bus BusType) {
+	var cddvds []*CDDVDDrive
+	model.WalkDevices(func(d vmx.Device) {
+		var bus vmx.BusType
+		switch {
+		case strings.HasPrefix(d.VMXID, string(vmx.IDE)):
+			bus = vmx.IDE
+		case strings.HasPrefix(d.VMXID, string(vmx.SCSI)):
+			bus = vmx.SCSI
+		case strings.HasPrefix(d.VMXID, string(vmx.SATA)):
+			bus = vmx.SATA
+		}
+
 		if d.Type == CDROM_IMAGE || d.Type == CDROM_RAW {
 			cddvds = append(cddvds, &CDDVDDrive{
 				ID:       d.VMXID,
-				Bus:      Bus,
+				Bus:      bus,
 				Filename: d.Filename,
 			})
 		}
-	}
-
-	for _, d := range model.IDEDevices {
-		handle(d.Device, IDE)
-	}
-	for _, d := range model.SCSIDevices {
-		handle(d.Device, SCSI)
-	}
-	for _, d := range model.SATADevices {
-		handle(d.Device, SATA)
-	}
-
+	})
 	return cddvds, nil
 }
 
@@ -198,7 +187,7 @@ func (v *VM) RemoveAllCDDVDDrives() error {
 }
 
 // Returns the CD/DVD drive identified by ID
-// This function depends entirely on how GoVMX identifies array's elements
+// This function depends entirely on how GoVMX identifies slice's elements
 func (v *VM) CDDVD(ID string) (*CDDVDDrive, error) {
 	err := v.vmxfile.Read()
 	if err != nil {
@@ -206,34 +195,28 @@ func (v *VM) CDDVD(ID string) (*CDDVDDrive, error) {
 	}
 
 	model := v.vmxfile.model
-	cddvd := &CDDVDDrive{}
 
-	handle := func(ID string, d vmx.Device, Bus BusType) *CDDVDDrive {
+	var bus vmx.BusType
+	switch {
+	case strings.HasPrefix(ID, string(vmx.IDE)):
+		bus = vmx.IDE
+	case strings.HasPrefix(ID, string(vmx.SCSI)):
+		bus = vmx.SCSI
+	case strings.HasPrefix(ID, string(vmx.SATA)):
+		bus = vmx.SATA
+	}
+
+	var filename string
+	found := model.FindDevice(func(d vmx.Device) bool {
 		if ID == d.VMXID {
-			cddvd.Bus = Bus
-			cddvd.Filename = d.Filename
-			return cddvd
+			filename = d.Filename
 		}
-		return nil
+		return ID == d.VMXID
+	}, bus)
+
+	if !found {
+		return nil, nil
 	}
 
-	if strings.HasPrefix(ID, string(IDE)) {
-		for _, d := range model.IDEDevices {
-			return handle(ID, d.Device, IDE), nil
-		}
-	}
-
-	if strings.HasPrefix(ID, string(SCSI)) {
-		for _, d := range model.SCSIDevices {
-			return handle(ID, d.Device, SCSI), nil
-		}
-	}
-
-	if strings.HasPrefix(ID, string(SATA)) {
-		for _, d := range model.SATADevices {
-			return handle(ID, d.Device, SATA), nil
-		}
-	}
-
-	return nil, nil
+	return &CDDVDDrive{Bus: bus, Filename: filename}, nil
 }
