@@ -11,16 +11,6 @@ import (
 	"github.com/cloudescape/govmx"
 )
 
-// Bus type to use when attaching CD/DVD drives and disks.
-type BusType string
-
-// Disk controllers
-const (
-	IDE  BusType = "ide"
-	SCSI BusType = "scsi"
-	SATA BusType = "sata"
-)
-
 // Device Type
 const (
 	CDROM_IMAGE string = "cdrom-image"
@@ -189,7 +179,7 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 	}
 
 	var cddvds []*CDDVDConfig
-	vm.WalkDevices(func(d vmx.Device) bool {
+	vm.WalkDevices(func(d vmx.Device) {
 		if d.Type == CDROM_IMAGE || d.Type == CDROM_RAW {
 			cddvds = append(cddvds, &CDDVDConfig{
 				ID:       d.VMXID,
@@ -197,7 +187,6 @@ func (v *VM) CDDVDs() ([]*CDDVDConfig, error) {
 				Filename: d.Filename,
 			})
 		}
-		return false // keep going
 	})
 	return cddvds, nil
 }
@@ -223,20 +212,19 @@ func (v *VM) CDDVD(ID string) (*CDDVDConfig, error) {
 
 	var bus string
 	switch {
-	case strings.HasPrefix(ID, string(IDE)):
-		bus = IDE
-	case strings.HasPrefix(ID, string(SCSI)):
-		bus = SCSI
-	case strings.HasPrefix(ID, string(SATA)):
-		bus = SATA
+	case strings.HasPrefix(ID, string(vmx.IDE)):
+		bus = vmx.IDE
+	case strings.HasPrefix(ID, string(vmx.SCSI)):
+		bus = vmx.SCSI
+	case strings.HasPrefix(ID, string(vmx.SATA)):
+		bus = vmx.SATA
 	}
 	var filename string
-	found := vm.WalkDevices(func(d vmx.Device) bool {
+	found := vm.FindDevice(func(d vmx.Device) bool {
 		if ID == d.VMXID {
 			filename = d.Filename
-			return true // stop walk
 		}
-		return false // keep going
+		return ID == d.VMXID
 	}, bus)
 
 	if !found {
