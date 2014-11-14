@@ -1,7 +1,7 @@
 # VMware VIX API for GO
-[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/cloudescape/govix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![GoDoc](https://godoc.org/github.com/cloudescape/govix?status.svg)](https://godoc.org/github.com/cloudescape/govix)
-[![Build Status](https://travis-ci.org/cloudescape/govix.svg?branch=master)](https://travis-ci.org/cloudescape/govix)
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/hooklift/govix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![GoDoc](https://godoc.org/github.com/hooklift/govix?status.svg)](https://godoc.org/github.com/hooklift/govix)
+[![Build Status](https://travis-ci.org/hooklift/govix.svg?branch=master)](https://travis-ci.org/hooklift/govix)
 
 The VIX API allows you to automate virtual machine operations on most current VMware hosted products such as: vmware workstation, player, fusion and server.
 
@@ -32,8 +32,8 @@ For a more detailed information about the API, please refer to the API documenta
 #### Dynamic library loading
 In order for Go to find libvix when running your compiled binary, a govix path has to be added to the *LD_LIBRARY_PATH* environment variable. Example:
 
-* **OSX:** `export DYLD_LIBRARY_PATH=${GOPATH}/src/github.com/cloudescape/govix/vendor/libvix`
-* **Linux:** `export LD_LIBRARY_PATH=${GOPATH}/src/github.com/cloudescape/govix/vendor/libvix`
+* **OSX:** `export DYLD_LIBRARY_PATH=${GOPATH}/src/github.com/hooklift/govix/vendor/libvix`
+* **Linux:** `export LD_LIBRARY_PATH=${GOPATH}/src/github.com/hooklift/govix/vendor/libvix`
 * **Windows:** append the path to the PATH environment variable
 
 Be aware that the previous example assumes $GOPATH only has a path set.
