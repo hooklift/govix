@@ -188,7 +188,7 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 	}
 
 	if isVMRunning {
-		return &VixError{
+		return &Error{
 			Code: 100000,
 			Text: "The VM has to be powered off in order to change its vmx settings",
 		}
@@ -217,7 +217,7 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 		}
 
 		if hwversion < 7 {
-			return &VixError{
+			return &Error{
 				Operation: "vm.AddNetworkAdapter",
 				Code:      100001,
 				Text:      fmt.Sprintf("Virtual hardware version needs to be 7 or higher in order to use vmxnet3. Current hardware version: %d", hwversion),
@@ -226,7 +226,7 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 	}
 
 	if adapter.LinkStatePropagation && (adapter.ConnType != NETWORK_BRIDGED) {
-		return &VixError{
+		return &Error{
 			Operation: "vm.AddNetworkAdapter",
 			Code:      100003,
 			Text:      "Link state propagation is only permitted for bridged networks",
@@ -237,7 +237,7 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 
 	if macaddr != "" {
 		if !strings.HasPrefix(macaddr, "00:50:56") {
-			return &VixError{
+			return &Error{
 				Operation: "vm.AddNetworkAdapter",
 				Code:      100004,
 				Text:      "Static MAC addresses have to start with VMware officially assigned prefix: 00:50:56",
@@ -288,7 +288,7 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 
 	if adapter.ConnType == NETWORK_CUSTOM {
 		if !ExistVSwitch(adapter.VSwitch.id) {
-			return &VixError{
+			return &Error{
 				Operation: "vm.AddNetworkAdapter",
 				Code:      100005,
 				Text:      "VSwitch " + adapter.VSwitch.id + " does not exist",
@@ -308,7 +308,7 @@ func (v *VM) nextNetworkAdapterID(vmx map[string]string) int {
 	var nextID int
 	prefix := "ethernet"
 
-	for key, _ := range vmx {
+	for key := range vmx {
 		if strings.HasPrefix(key, prefix) {
 			ethN := strings.Split(key, ".")[0]
 			number, _ := strconv.Atoi(strings.Split(ethN, prefix)[1])
@@ -324,7 +324,7 @@ func (v *VM) nextNetworkAdapterID(vmx map[string]string) int {
 		}
 	}
 
-	nextID += 1
+	nextID++
 
 	return nextID
 }
@@ -334,7 +334,7 @@ func (v *VM) totalNetworkAdapters(vmx map[string]string) int {
 	var total int
 	prefix := "ethernet"
 
-	for key, _ := range vmx {
+	for key := range vmx {
 		if strings.HasPrefix(key, prefix) {
 			ethN := strings.Split(key, ".")[0]
 			number, _ := strconv.Atoi(strings.Split(ethN, prefix)[1])
@@ -360,7 +360,7 @@ func (v *VM) RemoveAllNetworkAdapters() error {
 		return err
 	}
 
-	for key, _ := range vmx {
+	for key := range vmx {
 		if strings.HasPrefix(key, "ethernet") {
 			delete(vmx, key)
 		}
@@ -377,7 +377,7 @@ func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 	}
 
 	if isVMRunning {
-		return &VixError{
+		return &Error{
 			Operation: "vm.RemoveNetworkAdapter",
 			Code:      100000,
 			Text:      "The VM has to be powered off in order to change its vmx settings",
@@ -396,7 +396,7 @@ func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 
 	device := "ethernet" + adapter.ID
 
-	for key, _ := range vmx {
+	for key := range vmx {
 		if strings.HasPrefix(key, device) {
 			delete(vmx, key)
 		}

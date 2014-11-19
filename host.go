@@ -68,7 +68,7 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 
 	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
-		return nil, &VixError{
+		return nil, &Error{
 			Operation: "host.FindItems",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -113,7 +113,7 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 //   * To open an encrypted virtual machine, pass its correspondent password.
 //
 // Since VMware Workstation 7.0
-func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
+func (h *Host) OpenVM(vmxFile, password string) (*VM, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var propertyHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var vmHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -131,7 +131,7 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 			cpassword)
 
 		if C.VIX_OK != err {
-			return nil, &VixError{
+			return nil, &Error{
 				Operation: "host.OpenVM",
 				Code:      int(err & 0xFFFF),
 				Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -155,7 +155,7 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 		C.VIX_PROPERTY_NONE)
 
 	if C.VIX_OK != err {
-		return nil, &VixError{
+		return nil, &Error{
 			Operation: "host.OpenVM.get_vix_handle",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -194,7 +194,7 @@ func (h *Host) OpenVm(vmxFile, password string) (*VM, error) {
 //     VIX_E_NOT_FOUND.
 //
 // Since VMware Server 1.0
-func (h *Host) RegisterVm(vmxFile string) error {
+func (h *Host) RegisterVM(vmxFile string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
@@ -210,7 +210,7 @@ func (h *Host) RegisterVm(vmxFile string) error {
 
 	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
-		return &VixError{
+		return &Error{
 			Operation: "host.RegisterVM",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -243,7 +243,7 @@ func (h *Host) RegisterVm(vmxFile string) error {
 //     nor is it a Vix error to unregister a non-existent virtual machine.
 //
 // Since VMware Server 1.0
-func (h *Host) UnregisterVm(vmxFile string) error {
+func (h *Host) UnregisterVM(vmxFile string) error {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
 
@@ -259,7 +259,7 @@ func (h *Host) UnregisterVm(vmxFile string) error {
 
 	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
-		return &VixError{
+		return &Error{
 			Operation: "host.UnregisterVM",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -335,7 +335,7 @@ func (h *Host) CopyFileToGuest(src string, guest *Guest, dest string) error {
 
 	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
-		return &VixError{
+		return &Error{
 			Operation: "host.CopyFileToGuest",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),

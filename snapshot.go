@@ -31,7 +31,7 @@ func (s *Snapshot) Name() (string, error) {
 	defer C.Vix_FreeBuffer(unsafe.Pointer(name))
 
 	if C.VIX_OK != err {
-		return "", &VixError{
+		return "", &Error{
 			Operation: "snapshot.Name",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -53,7 +53,7 @@ func (s *Snapshot) Description() (string, error) {
 	defer C.Vix_FreeBuffer(unsafe.Pointer(desc))
 
 	if C.VIX_OK != err {
-		return "", &VixError{
+		return "", &Error{
 			Operation: "snapshot.Description",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -85,7 +85,7 @@ func (s *Snapshot) Child(index int) (*Snapshot, error) {
 		&snapshotHandle) //(output) A handle to the child snapshot.
 
 	if C.VIX_OK != err {
-		return nil, &VixError{
+		return nil, &Error{
 			Operation: "snapshot.Child",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -115,7 +115,7 @@ func (s *Snapshot) NumChildren() (int, error) {
 	err = C.VixSnapshot_GetNumChildren(s.handle, numChildren)
 
 	if C.VIX_OK != err {
-		return 0, &VixError{
+		return 0, &Error{
 			Operation: "snapshot.NumChildren",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -140,7 +140,7 @@ func (s *Snapshot) Parent() (*Snapshot, error) {
 		&snapshotHandle) //(output) A handle to the child snapshot.
 
 	if C.VIX_OK != err {
-		return nil, &VixError{
+		return nil, &Error{
 			Operation: "snapshot.Parent",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),

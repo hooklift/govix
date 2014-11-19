@@ -356,7 +356,7 @@ func Connect(config ConnectConfig) (*Host, error) {
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	if C.VIX_OK != err {
-		return nil, &VixError{
+		return nil, &Error{
 			Operation: "vix.Connect",
 			Code:      int(err & 0xFFFF),
 			Text:      C.GoString(C.Vix_GetErrorText(err, nil)),
@@ -381,7 +381,7 @@ func cleanupHost(host *Host) {
 }
 
 // GoVix Error
-type VixError struct {
+type Error struct {
 	// The GoVix operation involved at the time of the error
 	Operation string
 	// Error code
@@ -391,6 +391,6 @@ type VixError struct {
 }
 
 // Returns a description of the error along with its code and operation
-func (e *VixError) Error() string {
+func (e *Error) Error() string {
 	return fmt.Sprintf("VIX Error: %s, code: %d, operation: %s", e.Text, e.Code, e.Operation)
 }

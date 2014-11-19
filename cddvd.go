@@ -23,7 +23,7 @@ type CDDVDDrive struct {
 // Attaches a CD/DVD drive to the virtual machine.
 func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
-		return &VixError{
+		return &Error{
 			Operation: "vm.AttachCDDVD",
 			Code:      200000,
 			Text:      "Virtual machine must be powered off in order to attach a CD/DVD drive.",
@@ -58,7 +58,7 @@ func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 	case vmx.SATA:
 		model.SATADevices = append(model.SATADevices, vmx.SATADevice{Device: device})
 	default:
-		return &VixError{
+		return &Error{
 			Operation: "vm.AttachCDDVD",
 			Code:      200001,
 			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", drive.Bus),
@@ -71,7 +71,7 @@ func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 // Detaches a CD/DVD device from the virtual machine
 func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
-		return &VixError{
+		return &Error{
 			Operation: "vm.DetachCDDVD",
 			Code:      200002,
 			Text:      "Virtual machine must be powered off in order to detach CD/DVD drive.",
@@ -113,7 +113,7 @@ func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 			}
 		}
 	default:
-		return &VixError{
+		return &Error{
 			Operation: "vm.DetachCDDVD",
 			Code:      200003,
 			Text:      fmt.Sprintf("Unrecognized bus type: %s\n", drive.Bus),
@@ -151,7 +151,7 @@ func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 func (v *VM) RemoveAllCDDVDDrives() error {
 	drives, err := v.CDDVDs()
 	if err != nil {
-		return &VixError{
+		return &Error{
 			Operation: "vm.RemoveAllCDDVDDrives",
 			Code:      200004,
 			Text:      fmt.Sprintf("Error listing CD/DVD Drives: %s\n", err),
@@ -161,7 +161,7 @@ func (v *VM) RemoveAllCDDVDDrives() error {
 	for _, d := range drives {
 		err := v.DetachCDDVD(d)
 		if err != nil {
-			return &VixError{
+			return &Error{
 				Operation: "vm.RemoveAllCDDVDDrives",
 				Code:      200004,
 				Text:      fmt.Sprintf("Error removing CD/DVD Drive %v, error: %s\n", d, err),
