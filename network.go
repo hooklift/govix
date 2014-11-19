@@ -122,7 +122,7 @@ const (
 // A network adapter is usually attached to one virtual switch
 type NetworkAdapter struct {
 	// The identifier of the network adapter
-	Id string
+	ID string
 
 	// This field was made private while we decide whether or not to expose it
 	// to users since it could cause some confusion.
@@ -182,12 +182,12 @@ type NetworkAdapter struct {
 // Be aware that the adapter will not show up in the VMware Preferences user
 // interface immediatelly. Once the virtual machine is started the UI will pick it up.
 func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
-	isVmRunning, err := v.IsRunning()
+	isVMRunning, err := v.IsRunning()
 	if err != nil {
 		return err
 	}
 
-	if isVmRunning {
+	if isVMRunning {
 		return &VixError{
 			Code: 100000,
 			Text: "The VM has to be powered off in order to change its vmx settings",
@@ -245,8 +245,8 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 		}
 	}
 
-	nextId := v.nextNetworkAdapterId(vmx)
-	prefix := fmt.Sprintf("ethernet%d.", nextId)
+	nextID := v.nextNetworkAdapterID(vmx)
+	prefix := fmt.Sprintf("ethernet%d.", nextID)
 
 	vmx[prefix+"present"] = strings.ToUpper(strconv.FormatBool(adapter.present))
 
@@ -302,10 +302,10 @@ func (v *VM) AddNetworkAdapter(adapter *NetworkAdapter) error {
 	return writeVmx(vmxPath, vmx)
 }
 
-// Returns the next available ethernet Id, reusing ids if
+// Returns the next available ethernet ID, reusing ids if
 // the ethernet adapter has "present" equal to "FALSE"
-func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
-	var nextId int = 0
+func (v *VM) nextNetworkAdapterID(vmx map[string]string) int {
+	var nextID int
 	prefix := "ethernet"
 
 	for key, _ := range vmx {
@@ -318,20 +318,20 @@ func (v *VM) nextNetworkAdapterId(vmx map[string]string) int {
 				return number
 			}
 
-			if number > nextId {
-				nextId = number
+			if number > nextID {
+				nextID = number
 			}
 		}
 	}
 
-	nextId += 1
+	nextID += 1
 
-	return nextId
+	return nextID
 }
 
 // Returns the total number of network adapters in the VMX file
 func (v *VM) totalNetworkAdapters(vmx map[string]string) int {
-	var total int = 0
+	var total int
 	prefix := "ethernet"
 
 	for key, _ := range vmx {
@@ -371,12 +371,12 @@ func (v *VM) RemoveAllNetworkAdapters() error {
 
 // Removes network adapter from VMX file that matches the ID in "adapter.Id"
 func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
-	isVmRunning, err := v.IsRunning()
+	isVMRunning, err := v.IsRunning()
 	if err != nil {
 		return err
 	}
 
-	if isVmRunning {
+	if isVMRunning {
 		return &VixError{
 			Operation: "vm.RemoveNetworkAdapter",
 			Code:      100000,
@@ -394,7 +394,7 @@ func (v *VM) RemoveNetworkAdapter(adapter *NetworkAdapter) error {
 		return err
 	}
 
-	device := "ethernet" + adapter.Id
+	device := "ethernet" + adapter.ID
 
 	for key, _ := range vmx {
 		if strings.HasPrefix(key, device) {
@@ -444,7 +444,7 @@ func (v *VM) NetworkAdapters() ([]*NetworkAdapter, error) {
 		vswitch, _ := GetVSwitch(vmx[prefix+".vnet"])
 
 		adapter := &NetworkAdapter{
-			Id:                        id,
+			ID:                        id,
 			present:                   present,
 			ConnType:                  NetworkType(vmx[prefix+".connectionType"]),
 			Vdevice:                   VNetDevice(vmx[prefix+".virtualDev"]),

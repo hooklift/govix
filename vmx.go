@@ -12,7 +12,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/cloudescape/govmx"
+	"github.com/hooklift/govmx"
 )
 
 // Manages VMX file
@@ -94,7 +94,7 @@ func writeVmx(path string, vmx map[string]string) error {
 
 	keys := make([]string, len(vmx))
 	i := 0
-	for k, _ := range vmx {
+	for k := range vmx {
 		keys[i] = k
 		i++
 	}
