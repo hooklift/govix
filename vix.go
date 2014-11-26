@@ -10,7 +10,6 @@ package vix
 import "C"
 
 import (
-	"fmt"
 	"runtime"
 	"unsafe"
 )
@@ -378,19 +377,4 @@ func cleanupHost(host *Host) {
 	if host.handle != C.VIX_INVALID_HANDLE {
 		host.Disconnect()
 	}
-}
-
-// GoVix Error
-type Error struct {
-	// The GoVix operation involved at the time of the error
-	Operation string
-	// Error code
-	Code int
-	// Description of the erro
-	Text string
-}
-
-// Returns a description of the error along with its code and operation
-func (e *Error) Error() string {
-	return fmt.Sprintf("VIX Error: %s, code: %d, operation: %s", e.Text, e.Code, e.Operation)
 }
