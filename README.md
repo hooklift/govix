@@ -15,7 +15,6 @@ This API supports:
 
 * Adding, removing and listing virtual networks adapters attached to a VM
 * Adding and removing virtual CPUs and memory from a VM
-* Managing virtual switches
 * Managing virtual machines life cycle: power on, power off, reset, pause and resume.
 * Adding and removing shared folders
 * Taking screenshots from a running VM
@@ -36,7 +35,7 @@ In order for Go to find libvix when running your compiled binary, a govix path h
 * **Linux:** `export LD_LIBRARY_PATH=${GOPATH}/src/github.com/hooklift/govix/vendor/libvix`
 * **Windows:** append the path to the PATH environment variable
 
-Be aware that the previous example assumes $GOPATH only has a path set.
+Be aware that the previous example assumes $GOPATH only has one path set.
 
 ## Debugging
 ### Enabling debug logs
