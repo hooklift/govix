@@ -11,7 +11,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -368,17 +367,17 @@ func Connect(config ConnectConfig) (*Host, error) {
 		Provider: config.Provider,
 	}
 
-	runtime.SetFinalizer(host, cleanupHost)
+	//runtime.SetFinalizer(host, cleanupHost)
 
 	return host, nil
 }
 
 // Private function to clean up host handle
-func cleanupHost(host *Host) {
-	if host.handle != C.VIX_INVALID_HANDLE {
-		host.Disconnect()
-	}
-}
+// func cleanupHost(host *Host) {
+// 	if host.handle != C.VIX_INVALID_HANDLE {
+// 		host.Disconnect()
+// 	}
+// }
 
 // GoVix Error
 type Error struct {
