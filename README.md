@@ -5,7 +5,7 @@
 
 The VIX API allows you to automate virtual machine operations on most current VMware hosted products such as: vmware workstation, player, fusion and server.
 
-vSphere API, starting from 5.0, merged VIX API in the so-called GuestOperationsManager managed object. So, we encourage you to use govsphere for vSphere.
+vSphere API, starting from 5.0, merged VIX API in the so-called GuestOperationsManager managed object. So, we encourage you to use https://github.com/vmware/govmomi for vSphere instead.
 
 ## Mailing list
 **Google groups:** https://groups.google.com/group/govix
