@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package vix
 
 /*
@@ -14,27 +15,25 @@ import (
 	"unsafe"
 )
 
-// VixPowerState
-//
-// These are the possible values reported for VIX_PROPERTY_VM_POWER_STATE
-// property. These values are bitwise flags. The actual value returned for may
-// be a bitwise OR of one more of these flags, along with other reserved values
-// not documented here. They represent runtime information about the state of
-// the virtual machine. To test the value of the property, use the
-// Vix.GetProperties() function.
+// VMPowerState defines a type These are the possible values reported
+// for VIX_PROPERTY_VM_POWER_STATE property. These values are bitwise flags.
+// The actual value returned for may be a bitwise OR of one more of these flags,
+// along with other reserved values not documented here. They represent runtime
+// information about the state of the virtual machine. To test the value of the
+// property, use the Vix.GetProperties() function.
 //
 // Since VMware Server 1.0.
 type VMPowerState int
 
 const (
-	// Indicates that VM.PowerOff() has been called, but the operation itself
+	// POWERSTATE_POWERING_OFF Indicates that VM.PowerOff() has been called, but the operation itself
 	// has not completed.
 	POWERSTATE_POWERING_OFF VMPowerState = C.VIX_POWERSTATE_POWERING_OFF
 
-	// Indicates that the virtual machine is not running.
+	// POWERSTATE_POWERED_OFF indicates that the virtual machine is not running.
 	POWERSTATE_POWERED_OFF VMPowerState = C.VIX_POWERSTATE_POWERED_OFF
 
-	// Indicates that VM.PowerOn() has been called, but the operation itself
+	// POWERSTATE_POWERING_ON indicates that VM.PowerOn() has been called, but the operation itself
 	// has not completed.
 	POWERSTATE_POWERING_ON VMPowerState = C.VIX_POWERSTATE_POWERING_ON
 
@@ -62,71 +61,74 @@ const (
 	POWERSTATE_BLOCKED_ON_MSG VMPowerState = C.VIX_POWERSTATE_BLOCKED_ON_MSG
 )
 
-// VixFindItemType
-//
-// These are the types of searches you can do with Host.FindItems().
+// SearchType defines a type for doing different kinds of searches with
+// Host.FindItems()
 //
 // Since VMware Server 1.0.
 type SearchType int
 
 const (
-	// Finds all virtual machines currently running on the host.
+	// FIND_RUNNING_VMS finds all virtual machines currently running on the host.
 	FIND_RUNNING_VMS SearchType = C.VIX_FIND_RUNNING_VMS
 
-	// Finds all virtual machines registered on the host.
+	// FIND_REGISTERED_VMS finds all virtual machines registered on the host.
 	// This search applies only to platform products that maintain a virtual
 	// machine registry,
 	// such as ESX/ESXi and VMware Server, but not Workstation or Player.
 	FIND_REGISTERED_VMS SearchType = C.VIX_FIND_REGISTERED_VMS
 )
 
-// VixToolsState
-//
-// These are the possible values reported for VIX_PROPERTY_VM_TOOLS_STATE.
+// GuestToolsState represents the possible values reported for VIX_PROPERTY_VM_TOOLS_STATE.
 // They represent runtime information about the VMware Tools suite in the guest
 // operating system.
-// To test the value of the property, use the Vix.GetProperties() function.
+// To test the value of the property, use the vix.GetProperties() function.
 //
 // Since VMware Server 1.0.
 type GuestToolsState int
 
 const (
-	// Indicates that Vix is unable to determine the VMware Tools status.
+	// TOOLSSTATE_UNKNOWN indicates that Vix is unable to determine the VMware Tools status.
 	TOOLSSTATE_UNKNOWN GuestToolsState = C.VIX_TOOLSSTATE_UNKNOWN
 
-	// Indicates that VMware Tools is running in the guest operating system.
+	// TOOLSSTATE_RUNNING indicates that VMware Tools is running in the guest operating system.
 	TOOLSSTATE_RUNNING GuestToolsState = C.VIX_TOOLSSTATE_RUNNING
 
-	// Indicates that VMware Tools is not installed in the guest operating system.
+	// TOOLSSTATE_NOT_INSTALLED indicates that VMware Tools is not installed in the guest operating system.
 	TOOLSSTATE_NOT_INSTALLED GuestToolsState = C.VIX_TOOLSSTATE_NOT_INSTALLED
 )
 
-// Service Provider
+// Provider is a type to represent the different kinds of providers defined
+// in libvix.
 type Provider int
 
 const (
-	// vCenter Server, ESX/ESXi hosts, and VMware Server 2.0
+	// VMWARE_VI_SERVER represents vCenter Server, ESX/ESXi hosts, and VMware Server 2.0
 	VMWARE_VI_SERVER Provider = C.VIX_SERVICEPROVIDER_VMWARE_VI_SERVER
 
-	// VMware Workstation
+	// VMWARE_WORKSTATION represents VMware Workstation.
 	VMWARE_WORKSTATION Provider = C.VIX_SERVICEPROVIDER_VMWARE_WORKSTATION
 
-	// VMware Workstation (shared mode)
+	// VMWARE_WORKSTATION_SHARED represents VMware Workstation (shared mode)
 	VMWARE_WORKSTATION_SHARED Provider = C.VIX_SERVICEPROVIDER_VMWARE_WORKSTATION_SHARED
 
-	// With VMware Player
+	// VMWARE_PLAYER represents With VMware Player
 	VMWARE_PLAYER Provider = C.VIX_SERVICEPROVIDER_VMWARE_PLAYER
 
-	// VMware Server 1.0.x
+	// VMWARE_SERVER represents VMware Server 1.0.x
 	VMWARE_SERVER Provider = C.VIX_SERVICEPROVIDER_VMWARE_SERVER
 )
 
+// EventType defines a type for identifying the different kinds of VIX event
+// types.
 type EventType int
 
 const (
+	// JOB_COMPLETED means that the VIX job completed.
 	JOB_COMPLETED EventType = C.VIX_EVENTTYPE_JOB_COMPLETED
-	JOB_PROGRESS  EventType = C.VIX_EVENTTYPE_JOB_PROGRESS
-	FIND_ITEM     EventType = C.VIX_EVENTTYPE_FIND_ITEM
+	// JOB_PROGRESS means that the job is still running.
+	JOB_PROGRESS EventType = C.VIX_EVENTTYPE_JOB_PROGRESS
+	// FIND_ITEM means that an item was found when doing searchs.
+	FIND_ITEM EventType = C.VIX_EVENTTYPE_FIND_ITEM
 )
 
 type HostOption int
@@ -218,7 +220,7 @@ const (
 	FILE_ATTRIBUTES_SYMLINK   FileAttr = C.VIX_FILE_ATTRIBUTES_SYMLINK
 )
 
-// Configuration struct for the Connect function
+// ConnectConfig defines a configuration struct for the Connect function
 type ConnectConfig struct {
 	// Hostname varies by product platform. With vCenter Server, ESX/ESXi hosts,
 	// VMware Workstation (shared mode) and VMware Server 2.0,
@@ -268,7 +270,7 @@ type ConnectConfig struct {
 	Options HostOption
 }
 
-// Connects to a Provider
+// Connect connects to a VMWare provider.
 //
 // Parameters:
 //
@@ -379,7 +381,7 @@ func Connect(config ConnectConfig) (*Host, error) {
 // 	}
 // }
 
-// GoVix Error
+// Error defines a custom type for reporting VIX errors.
 type Error struct {
 	// The GoVix operation involved at the time of the error
 	Operation string
@@ -389,7 +391,8 @@ type Error struct {
 	Text string
 }
 
-// Returns a description of the error along with its code and operation
+// Error returns a description of the error along with its code and operation
+// implementing Go's error interface.
 func (e *Error) Error() string {
 	return fmt.Sprintf("VIX Error: %s, code: %d, operation: %s", e.Text, e.Code, e.Operation)
 }

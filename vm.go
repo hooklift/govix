@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package vix
 
 /*
@@ -21,12 +22,14 @@ import (
 	"github.com/hooklift/govmx"
 )
 
+// VM represents a virtual machine.
 type VM struct {
 	// Internal VIX handle
 	handle  C.VixHandle
 	vmxfile *VMXFile
 }
 
+// NewVirtualMachine creates a new VM instance.
 func NewVirtualMachine(handle C.VixHandle, vmxpath string) (*VM, error) {
 	vmxfile := &VMXFile{
 		path: vmxpath,
@@ -47,11 +50,10 @@ func NewVirtualMachine(handle C.VixHandle, vmxpath string) (*VM, error) {
 	return vm, nil
 }
 
-// Returns number of virtual CPUs configured for
-// the virtual machine.
+// Vcpus returns number of virtual CPUs configured for the virtual machine.
 func (v *VM) Vcpus() (uint8, error) {
 	var err C.VixError = C.VIX_OK
-	var vcpus C.int = C.VIX_PROPERTY_NONE
+	vcpus := C.VIX_PROPERTY_NONE
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_NUM_VCPUS,
@@ -68,7 +70,7 @@ func (v *VM) Vcpus() (uint8, error) {
 	return uint8(vcpus), nil
 }
 
-// Returns path to the virtual machine configuration file.
+// VmxPath returns path to the virtual machine configuration file.
 func (v *VM) VmxPath() (string, error) {
 	var err C.VixError = C.VIX_OK
 	var path *C.char
@@ -90,7 +92,7 @@ func (v *VM) VmxPath() (string, error) {
 	return C.GoString(path), nil
 }
 
-// Returns path to the virtual machine team.
+// VMTeamPath returns path to the virtual machine team.
 func (v *VM) VMTeamPath() (string, error) {
 	var err C.VixError = C.VIX_OK
 	var path *C.char
@@ -112,10 +114,10 @@ func (v *VM) VMTeamPath() (string, error) {
 	return C.GoString(path), nil
 }
 
-// Returns memory size of the virtual machine.
+// MemorySize returns memory size of the virtual machine.
 func (v *VM) MemorySize() (uint, error) {
 	var err C.VixError = C.VIX_OK
-	var memsize C.uint = C.VIX_PROPERTY_NONE
+	memsize := C.VIX_PROPERTY_NONE
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_MEMORY_SIZE,
@@ -132,9 +134,10 @@ func (v *VM) MemorySize() (uint, error) {
 	return uint(memsize), nil
 }
 
+// ReadOnly tells whether or not the VM is read-only.
 func (v *VM) ReadOnly() (bool, error) {
 	var err C.VixError = C.VIX_OK
-	var readonly C.Bool = C.VIX_PROPERTY_NONE
+	readonly := C.VIX_PROPERTY_NONE
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_READ_ONLY,
@@ -155,10 +158,10 @@ func (v *VM) ReadOnly() (bool, error) {
 	return true, nil
 }
 
-// Returns whether the virtual machine is a member of a team
+// InVMTeam returns whether the virtual machine is a member of a team.
 func (v *VM) InVMTeam() (bool, error) {
 	var err C.VixError = C.VIX_OK
-	var inTeam C.Bool = C.VIX_PROPERTY_NONE
+	inTeam := C.VIX_PROPERTY_NONE
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_IN_VMTEAM,
@@ -179,7 +182,7 @@ func (v *VM) InVMTeam() (bool, error) {
 	return true, nil
 }
 
-// Returns power state of the virtual machine.
+// PowerState returns power state of the virtual machine.
 func (v *VM) PowerState() (VMPowerState, error) {
 	var err C.VixError = C.VIX_OK
 	var state C.VixPowerState = 0x0
@@ -199,10 +202,10 @@ func (v *VM) PowerState() (VMPowerState, error) {
 	return VMPowerState(state), nil
 }
 
-// Returns state of the VMware Tools suite in the guest.
+// ToolsState returns state of the VMware Tools suite in the guest.
 func (v *VM) ToolsState() (GuestToolsState, error) {
 	var err C.VixError = C.VIX_OK
-	var state C.VixToolsState = C.VIX_TOOLSSTATE_UNKNOWN
+	state := C.VIX_TOOLSSTATE_UNKNOWN
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_TOOLS_STATE,
@@ -219,10 +222,10 @@ func (v *VM) ToolsState() (GuestToolsState, error) {
 	return GuestToolsState(state), nil
 }
 
-// Returns whether the virtual machine is running.
+// IsRunning returns whether the virtual machine is running.
 func (v *VM) IsRunning() (bool, error) {
 	var err C.VixError = C.VIX_OK
-	var running C.Bool = C.VIX_PROPERTY_NONE
+	running := C.VIX_PROPERTY_NONE
 
 	err = C.get_property(v.handle,
 		C.VIX_PROPERTY_VM_IS_RUNNING,
@@ -243,7 +246,7 @@ func (v *VM) IsRunning() (bool, error) {
 	return true, nil
 }
 
-// Returns the guest os
+// GuestOS returns the guest os.
 func (v *VM) GuestOS() (string, error) {
 	var err C.VixError = C.VIX_OK
 	var os *C.char
@@ -265,7 +268,7 @@ func (v *VM) GuestOS() (string, error) {
 	return C.GoString(os), nil
 }
 
-// Returns VM supported features
+// Features returns VM supported features.
 // func (v *VM) Features() (string, error) {
 // 	var err C.VixError = C.VIX_OK
 // 	var features *C.char
@@ -286,7 +289,7 @@ func (v *VM) GuestOS() (string, error) {
 // 	return C.GoString(features), nil
 // }
 
-// This function enables or disables all shared folders as a feature for a
+// EnableSharedFolders enables or disables all shared folders as a feature for a
 // virtual machine.
 //
 // Remarks:
@@ -317,8 +320,6 @@ func (v *VM) EnableSharedFolders(enabled bool) error {
 	var share C.Bool = C.FALSE
 	if enabled {
 		share = C.TRUE
-	} else {
-		share = C.FALSE
 	}
 
 	jobHandle = C.VixVM_EnableSharedFolders(v.handle,
@@ -341,7 +342,7 @@ func (v *VM) EnableSharedFolders(enabled bool) error {
 	return nil
 }
 
-// This function mounts a new shared folder in the virtual machine.
+// AddSharedFolder mounts a new shared folder in the virtual machine.
 //
 // Parameters:
 //
@@ -417,7 +418,7 @@ func (v *VM) AddSharedFolder(guestpath, hostpath string, flags SharedFolderOptio
 	return nil
 }
 
-// This function removes a shared folder in the virtual machine.
+// RemoveSharedFolder removes a shared folder in the virtual machine.
 //
 // Parameters:
 //
@@ -469,7 +470,7 @@ func (v *VM) RemoveSharedFolder(guestpath string) error {
 	return nil
 }
 
-// This function captures the screen of the guest operating system.
+// Screenshot captures the screen of the guest operating system.
 //
 // Remarks:
 //
@@ -509,7 +510,7 @@ func (v *VM) Screenshot() ([]byte, error) {
 	return C.GoBytes(unsafe.Pointer(&screenBits), byteCount), nil
 }
 
-// Creates a copy of the virtual machine specified by the current VM instance
+// Clone creates a copy of the virtual machine specified by the current VM instance.
 //
 // Parameters:
 //
@@ -588,7 +589,7 @@ func (v *VM) Clone(cloneType CloneType, destVmxFile string) (*VM, error) {
 	return NewVirtualMachine(clonedHandle, destVmxFile)
 }
 
-// Private function to clean up vm handle
+// cleanupVM cleans up VM VIX handle.
 func cleanupVM(v *VM) {
 	if v.handle != C.VIX_INVALID_HANDLE {
 		C.Vix_ReleaseHandle(v.handle)
@@ -596,7 +597,7 @@ func cleanupVM(v *VM) {
 	}
 }
 
-// This function saves a copy of the virtual machine state as a snapshot object.
+// CreateSnapshot saves a copy of the virtual machine state as a snapshot object.
 //
 // Parameters:
 //
@@ -684,7 +685,7 @@ func (v *VM) CreateSnapshot(name, description string, options CreateSnapshotOpti
 	return snapshot, nil
 }
 
-// This function deletes all saved states for the snapshot.
+// RemoveSnapshot deletes all saved states for the snapshot.
 //
 // Parameters:
 //
@@ -737,7 +738,7 @@ func (v *VM) RemoveSnapshot(snapshot *Snapshot, options RemoveSnapshotOption) er
 	return nil
 }
 
-// This function permanently deletes a virtual machine from your host system.
+// Delete permanently deletes a virtual machine from your host system.
 //
 // Parameters:
 //
@@ -802,8 +803,8 @@ func (v *VM) Delete(options VmDeleteOption) error {
 	return nil
 }
 
-// This function returns the handle of the current active snapshot belonging to
-// the virtual machine
+// CurrentSnapshot returns the handle of the current active snapshot belonging to
+// the virtual machine.
 //
 // Remarks:
 //
@@ -834,7 +835,7 @@ func (v *VM) CurrentSnapshot() (*Snapshot, error) {
 	return snapshot, nil
 }
 
-// This function returns a Snapshot object matching the given name
+// SnapshotByName returns a Snapshot object matching the given name.
 //
 // Parameters:
 //
@@ -876,12 +877,13 @@ func (v *VM) SnapshotByName(name string) (*Snapshot, error) {
 
 	snapshot := &Snapshot{handle: snapshotHandle}
 
+	// FIXME(c4milo): Replace with cleanUp function as we've done for VM and Host.
 	runtime.SetFinalizer(snapshot, cleanupSnapshot)
 
 	return snapshot, nil
 }
 
-// This function returns the number of top-level (root) snapshots belonging to a
+// TotalRootSnapshots returns the number of top-level (root) snapshots belonging to a
 // virtual machine.
 //
 // Remarks:
@@ -919,7 +921,7 @@ func (v *VM) TotalRootSnapshots() (int, error) {
 	return int(result), nil
 }
 
-// This function returns the number of shared folders mounted in the virtual
+// TotalSharedFolders returns the number of shared folders mounted in the virtual
 // machine.
 //
 // Remarks:
@@ -940,7 +942,7 @@ func (v *VM) TotalRootSnapshots() (int, error) {
 func (v *VM) TotalSharedFolders() (int, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
-	var numSharedFolders C.int = 0
+	var numSharedFolders C.int
 
 	jobHandle = C.VixVM_GetNumSharedFolders(v.handle, nil, nil)
 	defer C.Vix_ReleaseHandle(jobHandle)
@@ -958,8 +960,7 @@ func (v *VM) TotalSharedFolders() (int, error) {
 	return int(numSharedFolders), nil
 }
 
-// This function returns a root Snapshot instance
-// belonging to the current virtual machine
+// RootSnapshot returns a root Snapshot instance belonging to the current virtual machine.
 //
 // Parameters:
 //
@@ -1000,7 +1001,7 @@ func (v *VM) RootSnapshot(index int) (*Snapshot, error) {
 	return snapshot, nil
 }
 
-// This function modifies the state of a shared folder mounted in the virtual
+// SetSharedFolderState modifies the state of a shared folder mounted in the virtual
 // machine.
 //
 // Parameters:
@@ -1055,7 +1056,7 @@ func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOpt
 	return nil
 }
 
-// This function returns the state of a shared folder mounted in the virtual
+// SharedFolderState returns the state of a shared folder mounted in the virtual
 // machine.
 //
 // Parameters:
@@ -1078,9 +1079,10 @@ func (v *VM) SetSharedFolderState(name, hostpath string, options SharedFolderOpt
 func (v *VM) SharedFolderState(index int) (string, string, int, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
-	var folderName *C.char
-	var folderHostPath *C.char
-	var folderFlags *C.int
+	var (
+		folderName, folderHostPath *C.char
+		folderFlags                *C.int
+	)
 
 	jobHandle = C.VixVM_GetSharedFolderState(v.handle, //vmHandle
 		C.int(index), //index
@@ -1106,7 +1108,7 @@ func (v *VM) SharedFolderState(index int) (string, string, int, error) {
 		nil
 }
 
-// This function pauses a virtual machine. See Remarks section for pause
+// Pause pauses a virtual machine. See Remarks section for pause
 // behavior when used with different operations.
 //
 // Remarks:
@@ -1162,7 +1164,7 @@ func (v *VM) Pause() error {
 	return nil
 }
 
-// This function continues execution of a paused virtual machine.
+// Resume continues execution of a paused virtual machine.
 //
 // Remarks:
 //
@@ -1206,7 +1208,7 @@ func (v *VM) Resume() error {
 	return nil
 }
 
-// This function powers off a virtual machine.
+// PowerOff powers off a virtual machine.
 //
 // Parameters:
 //
@@ -1266,7 +1268,7 @@ func (v *VM) PowerOff(options VMPowerOption) error {
 	return nil
 }
 
-// Powers on a virtual machine.
+// PowerOn powers on a virtual machine.
 //
 // Parameters:
 //
@@ -1332,7 +1334,7 @@ func (v *VM) PowerOn(options VMPowerOption) error {
 	return nil
 }
 
-// This function resets a virtual machine.
+// Reset resets a virtual machine.
 //
 // Parameters:
 //
@@ -1392,7 +1394,7 @@ func (v *VM) Reset(options VMPowerOption) error {
 	return nil
 }
 
-// This function suspends a virtual machine.
+// Suspend suspends a virtual machine.
 //
 // Remarks:
 //
@@ -1426,7 +1428,7 @@ func (v *VM) Suspend() error {
 	return nil
 }
 
-// This function reads variables from the virtual machine state.
+// ReadVariable reads variables from the virtual machine state.
 // This includes the virtual machine configuration,
 // environment variables in the guest, and VMware "Guest Variables"
 //
@@ -1491,7 +1493,7 @@ func (v *VM) ReadVariable(varType GuestVarType, name string) (string, error) {
 	return C.GoString(readValue), nil
 }
 
-// This function writes variables to the virtual machine state.
+// WriteVariable writes variables to the virtual machine state.
 // This includes the virtual machine configuration, environment variables in
 // the guest, and VMware "Guest Variables".
 //
@@ -1577,7 +1579,7 @@ func (v *VM) WriteVariable(varType GuestVarType, name, value string) error {
 	return nil
 }
 
-// Restores the virtual machine to the state when the specified snapshot was
+// RevertToSnapshot restores the virtual machine to the state when the specified snapshot was
 // created.
 //
 // Parameters:
@@ -1649,7 +1651,7 @@ func (v *VM) RevertToSnapshot(snapshot *Snapshot, options VMPowerOption) error {
 	return nil
 }
 
-// Upgrades the virtual hardware version of the virtual machine to match the
+// UpgradeVHardware upgrades the virtual hardware version of the virtual machine to match the
 // version of the VIX library.
 // This has no effect if the virtual machine is already at the same version or
 // at a newer version than the VIX library.
@@ -1685,8 +1687,8 @@ func (v *VM) UpgradeVHardware() error {
 	return nil
 }
 
-// This function establishes a guest operating system authentication context
-// returning an instance of the Guest object
+// LoginInGuest establishes a guest operating system authentication context
+// returning an instance of the Guest object.
 //
 // Parameters:
 //
@@ -1814,7 +1816,7 @@ func (v *VM) LoginInGuest(username, password string, options GuestLoginOption) (
 	return guest, nil
 }
 
-// Prepares to install VMware Tools on the guest operating system.
+// InstallTools prepares to install VMware Tools on the guest operating system.
 //
 // Parameters:
 //
@@ -1891,7 +1893,7 @@ func (v *VM) InstallTools(options InstallToolsOption) error {
 	return nil
 }
 
-// This function signals the job handle when VMware Tools has successfully
+// WaitForToolsInGuest signals the job handle when VMware Tools has successfully
 // started in the guest operating system.
 // VMware Tools is a collection of services that run in the guest.
 //
@@ -1953,6 +1955,7 @@ func (v *VM) WaitForToolsInGuest(timeout time.Duration) error {
 	return nil
 }
 
+// updateVMX updates VMX file for the VM.
 func (v *VM) updateVMX(updateFunc func(model *vmx.VirtualMachine) error) error {
 	isVMRunning, err := v.IsRunning()
 	if err != nil {
@@ -1997,10 +2000,7 @@ func (v *VM) updateVMX(updateFunc func(model *vmx.VirtualMachine) error) error {
 	return nil
 }
 
-// Sets memory size in megabytes
-//
-// VM has to be powered off in order to change
-// this parameter
+// SetMemorySize sets memory size in megabytes. VM has to be powered off in order to change this parameter.
 func (v *VM) SetMemorySize(size uint) error {
 	if size == 0 {
 		size = 4
@@ -2018,10 +2018,7 @@ func (v *VM) SetMemorySize(size uint) error {
 	})
 }
 
-// Sets number of virtual cpus assigned to this machine.
-//
-// VM has to be powered off in order to change
-// this parameter
+// SetNumberVcpus sets number of virtual cpus assigned to this machine. VM has to be powered off in order to change this parameter.
 func (v *VM) SetNumberVcpus(vcpus uint) error {
 	if vcpus < 1 {
 		vcpus = 1
@@ -2033,7 +2030,7 @@ func (v *VM) SetNumberVcpus(vcpus uint) error {
 	})
 }
 
-// Sets virtual machine name
+// SetDisplayName sets virtual machine name.
 func (v *VM) SetDisplayName(name string) error {
 	return v.updateVMX(func(model *vmx.VirtualMachine) error {
 		model.DisplayName = name
@@ -2041,12 +2038,12 @@ func (v *VM) SetDisplayName(name string) error {
 	})
 }
 
-// Gets virtual machine name
+// DisplayName gets virtual machine name.
 func (v *VM) DisplayName() (string, error) {
 	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "displayname")
 }
 
-// Sets annotations for the virtual machine
+// SetAnnotation sets annotations for the virtual machine.
 func (v *VM) SetAnnotation(text string) error {
 	return v.updateVMX(func(model *vmx.VirtualMachine) error {
 		model.Annotation = text
@@ -2054,11 +2051,12 @@ func (v *VM) SetAnnotation(text string) error {
 	})
 }
 
-// Returns the description or annotations added to the virtual machine
+// Annotation returns the description or annotations added to the virtual machine.
 func (v *VM) Annotation() (string, error) {
 	return v.ReadVariable(VM_CONFIG_RUNTIME_ONLY, "annotation")
 }
 
+// SetVirtualHwVersion sets a virtual hardware version in the VMX file of the VM.
 func (v *VM) SetVirtualHwVersion(version string) error {
 	return v.updateVMX(func(model *vmx.VirtualMachine) error {
 		version, err := strconv.ParseInt(version, 10, 32)

@@ -12,4 +12,7 @@ build:
 test:
 	go test
 
-.PHONY: test build
+deps:
+	go get -u github.com/hooklift/govmx
+
+.PHONY: test build deps

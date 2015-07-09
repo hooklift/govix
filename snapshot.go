@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package vix
 
 /*
@@ -14,12 +15,13 @@ import (
 	"unsafe"
 )
 
+// Snapshot represents a VM snapshot.
 type Snapshot struct {
 	// Internal VIX handle
 	handle C.VixHandle
 }
 
-// Returns user defined name for the snapshot.
+// Name returns user defined name for the snapshot.
 func (s *Snapshot) Name() (string, error) {
 	var err C.VixError = C.VIX_OK
 	var name *C.char
@@ -41,7 +43,7 @@ func (s *Snapshot) Name() (string, error) {
 	return C.GoString(name), nil
 }
 
-// Returns user defined description for the snapshot.
+// Description returns user defined description for the snapshot.
 func (s *Snapshot) Description() (string, error) {
 	var err C.VixError = C.VIX_OK
 	var desc *C.char
@@ -63,7 +65,7 @@ func (s *Snapshot) Description() (string, error) {
 	return C.GoString(desc), nil
 }
 
-// This function returns the child snapshot corresponding to the index parameter
+// Child returns the child snapshot corresponding to the index parameter.
 //
 // Parameters:
 //
@@ -101,7 +103,7 @@ func (s *Snapshot) Child(index int) (*Snapshot, error) {
 	return snapshot, nil
 }
 
-// This function returns the number of child snapshots of a specified snapshot.
+// NumChildren returns the number of child snapshots of a specified snapshot.
 //
 // Remarks:
 //
@@ -125,7 +127,7 @@ func (s *Snapshot) NumChildren() (int, error) {
 	return int(*numChildren), nil
 }
 
-// This function returns the parent of a snapshot.
+// Parent returns the parent of a snapshot.
 //
 // Remarks:
 //
@@ -156,7 +158,7 @@ func (s *Snapshot) Parent() (*Snapshot, error) {
 	return snapshot, nil
 }
 
-// Private function to clean up snapshot handle
+// cleanupSnapshot cleans up snapshot internal C handle.
 func cleanupSnapshot(s *Snapshot) {
 	if s.handle != C.VIX_INVALID_HANDLE {
 		C.Vix_ReleaseHandle(s.handle)
