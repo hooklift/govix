@@ -150,7 +150,7 @@ void find_items_callback(
                             VIX_PROPERTY_NONE);
 
     if (VIX_OK != err) {
-        // Handle the error...
+        // TODO(c4milo): Handle the error.
         printf("Error %s\n", Vix_GetErrorText(err, NULL));
     }
 

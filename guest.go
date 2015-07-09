@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package vix
 
 /*
@@ -13,10 +14,12 @@ import (
 	"unsafe"
 )
 
+// Guest represents a VMware virtual machine.
 type Guest struct {
 	handle C.VixHandle
 }
 
+// SharedFoldersParentDir returns the parent dir for share folders in the Guest.
 func (g *Guest) SharedFoldersParentDir() (string, error) {
 	var err C.VixError = C.VIX_OK
 	var path *C.char
@@ -38,8 +41,8 @@ func (g *Guest) SharedFoldersParentDir() (string, error) {
 	return C.GoString(path), nil
 }
 
-// Copies a file or directory from the guest operating system to the local
-// system (where the Vix client is running).
+// CopyFileToHost copies a file or directory from the guest operating system to the local
+// system (where the VIX client is running).
 //
 // Parameters:
 //
@@ -78,7 +81,7 @@ func (g *Guest) CopyFileToHost(guestpath, hostpath string) error {
 	return nil
 }
 
-// This function creates a directory in the guest operating system.
+// MkDir creates a directory in the guest operating system.
 //
 // Parameters:
 //
@@ -124,7 +127,7 @@ func (g *Guest) MkDir(path string) error {
 	return nil
 }
 
-// This function creates a temporary file in the guest operating system.
+// MkTemp creates a temporary file in the guest operating system.
 // The user is responsible for removing the file when it is no longer needed.
 //
 // Since VMware Workstation 6.0
@@ -156,7 +159,7 @@ func (g *Guest) MkTemp() (string, error) {
 	return C.GoString(tempFilePath), nil
 }
 
-// This function deletes a directory in the guest operating system.
+// RmDir deletes a directory in the guest operating system.
 // Any files or subdirectories in the specified directory will also be deleted.
 //
 // Parameters:
@@ -197,7 +200,7 @@ func (g *Guest) RmDir(path string) error {
 	return nil
 }
 
-// This function deletes a file in the guest operating system.
+// RmFile deletes a file in the guest operating system.
 //
 // Parameters:
 //
@@ -235,7 +238,7 @@ func (g *Guest) RmFile(filepath string) error {
 	return nil
 }
 
-// This function tests the existence of a directory in the guest operating
+// IsDir tests the existence of a directory in the guest operating
 // system.
 //
 // Parameters:
@@ -280,7 +283,7 @@ func (g *Guest) IsDir(path string) (bool, error) {
 	return true, nil
 }
 
-// This function tests the existence of a file in the guest operating system.
+// IsFile tests the existence of a file in the guest operating system.
 //
 // Parameters:
 //
@@ -329,7 +332,7 @@ func (g *Guest) IsFile(filepath string) (bool, error) {
 	return true, nil
 }
 
-// This function returns information about a file in the guest operating system.
+// FileInfo returns information about a file in the guest operating system.
 //
 // Parameters:
 //
@@ -375,7 +378,7 @@ func (g *Guest) FileInfo(filepath string) (*GuestFile, error) {
 	}, nil
 }
 
-// This function terminates a process in the guest operating system.
+// Kill terminates a process in the guest operating system.
 //
 // Parameters:
 //
@@ -416,7 +419,7 @@ func (g *Guest) Kill(pid uint64) error {
 	return nil
 }
 
-// This struct is used to return File information from the guest OS
+// GuestFile is used to return file information from the guest OS
 type GuestFile struct {
 	// Path to the file
 	Path string
@@ -440,7 +443,7 @@ type GuestFile struct {
 	Attrs FileAttr
 }
 
-// This function lists a directory in the guest operating system.
+// Ls lists a directory in the guest operating system.
 //
 // Parameters:
 //
@@ -504,7 +507,7 @@ func (g *Guest) Ls(dir string) ([]*GuestFile, error) {
 	return files, nil
 }
 
-// Use to return process information of processes running in a guest OS
+// GuestProcess is use to return process information of processes running in a guest OS
 type GuestProcess struct {
 	// Name of the process
 	Name string
@@ -525,8 +528,7 @@ type GuestProcess struct {
 	StartTime int
 }
 
-// This function lists the running processes in the guest
-// operating system.
+// Ps lists the running processes in the guest operating system.
 //
 // Since Workstation 6.0
 // Minimum Supported Guest OS: Microsoft Windows NT Series, Linux
@@ -599,7 +601,7 @@ func (g *Guest) Ps() ([]*GuestProcess, error) {
 	return processes, nil
 }
 
-// This function removes any guest operating system authentication
+// Logout removes any guest operating system authentication
 // context created by a previous call to VM.LoginInGuest().
 //
 // Remarks:
@@ -633,7 +635,7 @@ func (g *Guest) Logout() error {
 	return nil
 }
 
-// This function runs a program in the guest operating system.
+// RunProgram runs a program in the guest operating system.
 // The program must be stored on a file system available to the guest
 // before calling this function.
 //
@@ -733,7 +735,7 @@ func (g *Guest) RunProgram(path, args string, options RunProgramOption) (uint64,
 	return uint64(*pid), int(*elapsedtime), int(*exitCode), nil
 }
 
-// This function runs a script in the guest operating system.
+// RunScript runs a script in the guest operating system.
 //
 // Parameters:
 //
@@ -815,7 +817,7 @@ func (g *Guest) RunScript(shell, args string, options RunProgramOption) (uint64,
 	return uint64(*pid), int(*elapsedtime), int(*exitCode), nil
 }
 
-// This function renames a file or directory in the guest operating system.
+// Mv renames a file or directory in the guest operating system.
 //
 // Parameters:
 //

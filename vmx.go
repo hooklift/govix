@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package vix
 
 import (
@@ -15,14 +16,14 @@ import (
 	"github.com/hooklift/govmx"
 )
 
-// Manages VMX file
+// VMXFile manages VMX files
 type VMXFile struct {
 	sync.Mutex
 	model *vmx.VirtualMachine
 	path  string
 }
 
-// Reads VMX file from disk and unmarshals it
+// Read reads VMX file from disk and unmarshals it
 func (vmxfile *VMXFile) Read() error {
 	data, err := ioutil.ReadFile(vmxfile.path)
 	if err != nil {
@@ -41,7 +42,7 @@ func (vmxfile *VMXFile) Read() error {
 	return nil
 }
 
-// Marshals and writes VMX file to disk
+// Write marshals and writes VMX file to disk
 func (vmxfile *VMXFile) Write() error {
 	file, err := os.Create(vmxfile.path)
 	if err != nil {

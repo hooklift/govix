@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package vix
 
 /*
@@ -11,12 +12,13 @@ import "C"
 
 import "unsafe"
 
+// Host represents a physical machine where the hypervisor is running.
 type Host struct {
 	Provider Provider
 	handle   C.VixHandle
 }
 
-// Destroys the state for a particular host instance
+// Disconnect destroys the state for a particular host instance.
 //
 // Call this function to disconnect the host. After you call this function the
 // Host object is no longer valid and you should not longer use it.
@@ -45,7 +47,7 @@ func go_callback_char(callbackPtr unsafe.Pointer, item *C.char) {
 	callback(item)
 }
 
-// This function finds Vix objects. For example, when used to find all
+// FindItems finds VIX objects. For example, when used to find all
 // running virtual machines, Host.FindItems() returns a series of virtual
 // machine file path names.
 func (h *Host) FindItems(options SearchType) ([]string, error) {
@@ -78,8 +80,7 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 	return items, nil
 }
 
-// This function opens a virtual machine on the host
-// and returns a VM instance.
+// OpenVM opens a virtual machine on the host and returns a VM instance.
 //
 // Parameters:
 //
@@ -165,7 +166,7 @@ func (h *Host) OpenVM(vmxFile, password string) (*VM, error) {
 	return NewVirtualMachine(vmHandle, vmxFile)
 }
 
-// This function adds a virtual machine to the host's inventory.
+// RegisterVM adds a virtual machine to the host's inventory.
 //
 // Parameters:
 //
@@ -220,7 +221,7 @@ func (h *Host) RegisterVM(vmxFile string) error {
 	return nil
 }
 
-// This function removes a virtual machine from the host's inventory.
+// UnregisterVM removes a virtual machine from the host's inventory.
 //
 // Parameters:
 //
@@ -269,7 +270,7 @@ func (h *Host) UnregisterVM(vmxFile string) error {
 	return nil
 }
 
-// Copies a file or directory from the local system (where the Vix client is
+// CopyFileToGuest copies a file or directory from the local system (where the Vix client is
 // running) to the guest operating system.
 //
 // Parameters:
