@@ -1,6 +1,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 package vix
 
 import (
@@ -10,7 +11,7 @@ import (
 	"github.com/hooklift/govmx"
 )
 
-// CD/DVD configuration
+// CDDVDDrive defines CD/DVD configuration type.
 type CDDVDDrive struct {
 	ID string
 	// Either IDE, SCSI or SATA
@@ -20,7 +21,7 @@ type CDDVDDrive struct {
 	Filename string
 }
 
-// Attaches a CD/DVD drive to the virtual machine.
+// AttachCDDVD attaches a CD/DVD drive to the virtual machine.
 func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
 		return &Error{
@@ -68,7 +69,7 @@ func (v *VM) AttachCDDVD(drive *CDDVDDrive) error {
 	return v.vmxfile.Write()
 }
 
-// Detaches a CD/DVD device from the virtual machine
+// DetachCDDVD detaches a CD/DVD device from the virtual machine.
 func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 	if running, _ := v.IsRunning(); running {
 		return &Error{
@@ -123,7 +124,7 @@ func (v *VM) DetachCDDVD(drive *CDDVDDrive) error {
 	return v.vmxfile.Write()
 }
 
-// Returns an unordered slice of currently attached CD/DVD devices on any bus.
+// CDDVDs returns an unordered slice of currently attached CD/DVD devices on any bus.
 func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 	// Loads VMX file in memory
 	err := v.vmxfile.Read()
@@ -148,6 +149,7 @@ func (v *VM) CDDVDs() ([]*CDDVDDrive, error) {
 	return cddvds, nil
 }
 
+// RemoveAllCDDVDDrives deletes all the CD/DVD drives from the VM's VMX file.
 func (v *VM) RemoveAllCDDVDDrives() error {
 	drives, err := v.CDDVDs()
 	if err != nil {
@@ -172,7 +174,7 @@ func (v *VM) RemoveAllCDDVDDrives() error {
 	return nil
 }
 
-// Gets BusType from device ID
+// BusTypeFromID gets BusType from device ID.
 func BusTypeFromID(ID string) vmx.BusType {
 	var bus vmx.BusType
 	switch {
@@ -187,7 +189,7 @@ func BusTypeFromID(ID string) vmx.BusType {
 	return bus
 }
 
-// Returns the CD/DVD drive identified by ID
+// CDDVD returns the CD/DVD drive identified by ID.
 // This function depends entirely on how GoVMX identifies slice's elements
 func (v *VM) CDDVD(ID string) (*CDDVDDrive, error) {
 	err := v.vmxfile.Read()

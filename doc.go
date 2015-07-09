@@ -65,7 +65,7 @@
 //
 // As noted in the End User License Agreement, the VIX API allows you to build and distribute your own applications. To facilitate this, the following files are designated as redistributable for the purpose of that agreement:
 //
-//   * VixAllProducts.lib
+//  * VixAllProducts.lib
 //  * VixAllProductsd.lib
 //  * VixAllProductsDyn.lib
 //  * vix.lib and vix.dll
