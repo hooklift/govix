@@ -35,7 +35,7 @@ For a more detailed information about the API, please refer to the API documenta
 Clone the repo and use the makefile for running the examples.
 When compiling your application that imports govix make sure to set the required ENV vars.
 
-For this example, the libvix dependecy has been copied into the projects vendor directory:
+In this example, the libvix dependecy has been copied into the projects vendor directory:
 
 ```shell
 pwd=$(pwd)
