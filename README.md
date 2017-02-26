@@ -1,16 +1,20 @@
 # VMware VIX API for GO
+
 [![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/hooklift/govix?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![GoDoc](https://godoc.org/github.com/hooklift/govix?status.svg)](https://godoc.org/github.com/hooklift/govix)
 [![Build Status](https://travis-ci.org/hooklift/govix.svg?branch=master)](https://travis-ci.org/hooklift/govix)
+[![Golang](https://img.shields.io/badge/Go-1.8-blue.svg)](https://golang.org)
 
 The VIX API allows you to automate virtual machine operations on most current VMware hosted products such as: vmware workstation, player, fusion and server.
 
 vSphere API, starting from 5.0, merged VIX API in the so-called GuestOperationsManager managed object. So, we encourage you to use https://github.com/vmware/govmomi for vSphere instead.
 
 ## Mailing list
+
 **Google groups:** https://groups.google.com/group/govix
 
 ## Features
+
 This API supports:
 
 * Adding, removing and listing virtual networks adapters attached to a VM
@@ -26,9 +30,26 @@ This API supports:
 
 For a more detailed information about the API, please refer to the API documentation.
 
+## Installation
+
+Clone the repo and use the makefile for running the examples.
+When compiling your application that imports govix make sure to set the required ENV vars.
+
+For this example, the libvix dependecy has been copied into the projects vendor directory:
+
+```shell
+pwd=$(pwd)
+CGO_CFLAGS="-I$pwd/vendor/libvix/include -Werror" \
+CGO_LDFLAGS="-L$pwd/vendor/libvix -lvixAllProducts -ldl -lpthread" \
+DYLD_LIBRARY_PATH="$pwd/vendor/libvix" \
+LD_LIBRARY_PATH="$pwd/vendor/libvix" \
+go install
+```
+
 ## To keep in mind when running your apps
 
-#### Dynamic library loading
+### Dynamic library loading
+
 In order for Go to find libvix when running your compiled binary, a govix path has to be added to the *LD_LIBRARY_PATH* environment variable. Example:
 
 * **OSX:** `export DYLD_LIBRARY_PATH=${GOPATH}/src/github.com/hooklift/govix/vendor/libvix`
@@ -38,12 +59,14 @@ In order for Go to find libvix when running your compiled binary, a govix path h
 Be aware that the previous example assumes $GOPATH only has one path set.
 
 ## Debugging
+
 ### Enabling debug logs
 
 `echo "vix.debugLevel = \"9\"" >> ~/Library/Preferences/VMware\ Fusion/config`
 
 
 ### Logs
+
 * **OSX:** `~/Library/Logs/VMware/*.log`
 * **Linux:** `/tmp/vmware-<username>/vix-<pid>.log`
 * **Windows:** `%TEMP%\vmware-<username>\vix-<pid>.log`
@@ -56,6 +79,7 @@ objects are managed by the Vix library to avoid conflicts between threads.
 Clients need only be responsible for protecting user-defined shared data.
 
 ## VMware VIX EULA
+
 As noted in the End User License Agreement, the VIX API allows you to build and distribute your own applications. To facilitate this, the following files are designated as redistributable for the purpose of that agreement:
 
 * VixAllProducts.lib
