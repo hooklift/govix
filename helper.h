@@ -59,8 +59,7 @@ VixError get_guest_process(VixHandle jobHandle,
 void find_items_callback(
 	VixHandle jobHandle,
 	VixEventType eventType,
-	VixHandle moreEventInfo,
-	void* goCallback);
+	VixHandle moreEventInfo);
 
 VixError get_num_shared_folders(VixHandle jobHandle, int* numSharedFolders);
 VixError read_variable(VixHandle jobHandle, char** readValue);
