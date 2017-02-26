@@ -49,13 +49,8 @@ func (h *Host) Disconnect() {
 	}
 }
 
-//export go_callback_char
-func go_callback_char(callbackPtr unsafe.Pointer, item *C.char) {
-	callback := *(*func(*C.char))(callbackPtr)
-	callback(item)
-}
-
 //export append_callback
+// called from C code to receive result strings of the FindItems func
 func append_callback(item *C.char) {
 	itemsMutex.Lock()
 	items = append(items, C.GoString(item))
@@ -80,8 +75,9 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 		C.VIX_INVALID_HANDLE,       //searchCriteria
 		-1,                         //timeout
 		(*C.VixEventProc)(C.find_items_callback), //callbackProc
-		// Passing Go Pointers into C is illegal since go 1.6
-		unsafe.Pointer(nil)) //clientData
+		// Passing Go Pointers that point to Go Memory into C, is illegal since go 1.6
+		// sending the results back happens by using the exported append_callback, instead of using the generic callback
+		nil) //clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
