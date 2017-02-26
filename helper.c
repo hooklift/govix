@@ -155,8 +155,9 @@ void find_items_callback(
     }
 
     go_callback_char(goCallback, url);
-
+    free(goCallback);
     Vix_FreeBuffer(url);
+
 }
 
 VixError get_guest_file(VixHandle jobHandle, int i, char* name, int64* size, int64* modtime, int* flags) {
