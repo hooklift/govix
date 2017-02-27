@@ -16,7 +16,9 @@ import (
 )
 
 var (
-	items      []string
+	// storage for results of findItems queries
+	// thread safe
+	items      = make(map[int][]string, 0)
 	itemsMutex = &sync.Mutex{}
 )
 
@@ -49,11 +51,12 @@ func (h *Host) Disconnect() {
 	}
 }
 
-//export append_callback
-// called from C code to receive result strings of the FindItems func
-func append_callback(item *C.char) {
+//export add_url_callback
+// called from C code to add a virtual machine url
+// to the findItems query result of a jobHandle
+func add_url_callback(item *C.char, jobHandle int) {
 	itemsMutex.Lock()
-	items = append(items, C.GoString(item))
+	items[jobHandle] = append(items[jobHandle], C.GoString(item))
 	itemsMutex.Unlock()
 }
 
@@ -61,9 +64,6 @@ func append_callback(item *C.char) {
 // running virtual machines, Host.FindItems() returns a series of virtual
 // machine file path names.
 func (h *Host) FindItems(options SearchType) ([]string, error) {
-
-	// reset
-	items = []string{}
 
 	var (
 		jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
@@ -82,7 +82,7 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	err = C.vix_job_wait(jobHandle)
-	if C.VIX_OK != err {
+	if err != C.VIX_OK {
 		return nil, &Error{
 			Operation: "host.FindItems",
 			Code:      int(err & 0xFFFF),
@@ -90,7 +90,16 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 		}
 	}
 
-	return items, nil
+	itemsMutex.Lock()
+
+	// get result
+	result := items[int(jobHandle)]
+
+	// clean up
+	delete(items, int(jobHandle))
+	itemsMutex.Unlock()
+
+	return result, nil
 }
 
 // OpenVM opens a virtual machine on the host and returns a VM instance.

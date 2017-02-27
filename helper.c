@@ -153,8 +153,9 @@ void find_items_callback(
         printf("Error %s\n", Vix_GetErrorText(err, NULL));
     }
 
-    append_callback(url);
-
+    // add url to the results for the jobHandle
+    add_url_callback(url, jobHandle);
+ 
     Vix_FreeBuffer(url);
 }
 
