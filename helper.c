@@ -133,7 +133,7 @@ void find_items_callback(
     VixHandle jobHandle,
     VixEventType eventType,
     VixHandle moreEventInfo,
-    void* goCallback) {
+    void* hostPtr) {
 
     VixError err = VIX_OK;
     char* url = NULL;
@@ -150,11 +150,11 @@ void find_items_callback(
                             VIX_PROPERTY_NONE);
 
     if (VIX_OK != err) {
-        // TODO(c4milo): Handle the error.
+        // TODO(c4milo): forward the error to Go land so it can be handled properly.
         printf("Error %s\n", Vix_GetErrorText(err, NULL));
     }
 
-    go_callback_char(goCallback, url);
+    addItem(hostPtr, url);
 
     Vix_FreeBuffer(url);
 }

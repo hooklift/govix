@@ -16,6 +16,8 @@ import "unsafe"
 type Host struct {
 	Provider Provider
 	handle   C.VixHandle
+	// items contains the result of FindItems
+	items []string
 }
 
 // Disconnect destroys the state for a particular host instance.
@@ -41,10 +43,10 @@ func (h *Host) Disconnect() {
 	}
 }
 
-//export go_callback_char
-func go_callback_char(callbackPtr unsafe.Pointer, item *C.char) {
-	callback := *(*func(*C.char))(callbackPtr)
-	callback(item)
+//export addItem
+func addItem(hostPtr unsafe.Pointer, item *C.char) {
+	host := (*Host)(hostPtr)
+	host.items = append(host.items, C.GoString(item))
 }
 
 // FindItems finds VIX objects. For example, when used to find all
@@ -53,20 +55,18 @@ func go_callback_char(callbackPtr unsafe.Pointer, item *C.char) {
 func (h *Host) FindItems(options SearchType) ([]string, error) {
 	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
 	var err C.VixError = C.VIX_OK
-	var items []string
-
-	callback := func(item *C.char) {
-		items = append(items, C.GoString(item))
-	}
 
 	jobHandle = C.VixHost_FindItems(h.handle,
 		C.VixFindItemType(options), //searchType
 		C.VIX_INVALID_HANDLE,       //searchCriteria
 		-1,                         //timeout
 		(*C.VixEventProc)(C.find_items_callback), //callbackProc
-		unsafe.Pointer(&callback))                //clientData
+		unsafe.Pointer(h))                        //clientData
 
-	defer C.Vix_ReleaseHandle(jobHandle)
+	defer func() {
+		h.items = []string{}
+		C.Vix_ReleaseHandle(jobHandle)
+	}()
 
 	err = C.vix_job_wait(jobHandle)
 	if C.VIX_OK != err {
@@ -77,7 +77,7 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 		}
 	}
 
-	return items, nil
+	return h.items, nil
 }
 
 // OpenVM opens a virtual machine on the host and returns a VM instance.
