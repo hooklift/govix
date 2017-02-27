@@ -20,7 +20,7 @@ func main() {
 
 	defer host.Disconnect()
 
-	vm, err := host.OpenVm("/Users/camilo/Documents/Virtual Machines.localized/Ubuntu 64-bit.vmwarevm/Ubuntu 64-bit.vmx", "")
+	vm, err := host.OpenVM("/Users/camilo/Documents/Virtual Machines.localized/Ubuntu 64-bit.vmwarevm/Ubuntu 64-bit.vmx", "")
 	if err != nil {
 		panic(err)
 	}
