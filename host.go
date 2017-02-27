@@ -10,7 +10,17 @@ package vix
 */
 import "C"
 
-import "unsafe"
+import (
+	"sync"
+	"unsafe"
+)
+
+var (
+	// storage for results of findItems queries
+	// thread safe
+	items      = make(map[int][]string, 0)
+	itemsMutex = &sync.Mutex{}
+)
 
 // Host represents a physical machine where the hypervisor is running.
 type Host struct {
@@ -41,35 +51,38 @@ func (h *Host) Disconnect() {
 	}
 }
 
-//export go_callback_char
-func go_callback_char(callbackPtr unsafe.Pointer, item *C.char) {
-	callback := *(*func(*C.char))(callbackPtr)
-	callback(item)
+//export add_url_callback
+// called from C code to add a virtual machine url
+// to the findItems query result of a jobHandle
+func add_url_callback(item *C.char, jobHandle int) {
+	itemsMutex.Lock()
+	items[jobHandle] = append(items[jobHandle], C.GoString(item))
+	itemsMutex.Unlock()
 }
 
 // FindItems finds VIX objects. For example, when used to find all
 // running virtual machines, Host.FindItems() returns a series of virtual
 // machine file path names.
 func (h *Host) FindItems(options SearchType) ([]string, error) {
-	var jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
-	var err C.VixError = C.VIX_OK
-	var items []string
 
-	callback := func(item *C.char) {
-		items = append(items, C.GoString(item))
-	}
+	var (
+		jobHandle C.VixHandle = C.VIX_INVALID_HANDLE
+		err       C.VixError  = C.VIX_OK
+	)
 
 	jobHandle = C.VixHost_FindItems(h.handle,
 		C.VixFindItemType(options), //searchType
 		C.VIX_INVALID_HANDLE,       //searchCriteria
 		-1,                         //timeout
 		(*C.VixEventProc)(C.find_items_callback), //callbackProc
-		unsafe.Pointer(&callback))                //clientData
+		// Passing Go Pointers that point to Go Memory into C, is illegal since go 1.6
+		// sending the results back happens by using the exported append_callback, instead of using the generic callback
+		nil) //clientData
 
 	defer C.Vix_ReleaseHandle(jobHandle)
 
 	err = C.vix_job_wait(jobHandle)
-	if C.VIX_OK != err {
+	if err != C.VIX_OK {
 		return nil, &Error{
 			Operation: "host.FindItems",
 			Code:      int(err & 0xFFFF),
@@ -77,7 +90,16 @@ func (h *Host) FindItems(options SearchType) ([]string, error) {
 		}
 	}
 
-	return items, nil
+	itemsMutex.Lock()
+
+	// get result
+	result := items[int(jobHandle)]
+
+	// clean up
+	delete(items, int(jobHandle))
+	itemsMutex.Unlock()
+
+	return result, nil
 }
 
 // OpenVM opens a virtual machine on the host and returns a VM instance.

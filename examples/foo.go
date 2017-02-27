@@ -6,7 +6,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hooklift/govix"
+	"github.com/dreadl0ck/govix"
 )
 
 func main() {
@@ -30,12 +30,12 @@ func main() {
 	fmt.Println("host.findItems returned!")
 
 	for _, url := range urls {
-		vm, _ := host.OpenVm(url, "")
+		vm, _ := host.OpenVM(url, "")
 		fmt.Println("Url: " + url)
 		vcpus, _ := vm.Vcpus()
 		memsize, _ := vm.MemorySize()
 		vmxpath, _ := vm.VmxPath()
-		teampath, _ := vm.VmTeamPath()
+		teampath, _ := vm.VMTeamPath()
 		guestos, _ := vm.GuestOS()
 		//features, _ := vm.Features()
 		fmt.Printf("vcpus: %d\n", vcpus)

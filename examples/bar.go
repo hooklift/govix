@@ -6,7 +6,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/hooklift/govix"
+	"github.com/dreadl0ck/govix"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 
 	defer host.Disconnect()
 
-	vm, err := host.OpenVm("/Users/camilo/Documents/Virtual Machines.localized/Ubuntu 64-bit.vmwarevm/Ubuntu 64-bit.vmx", "")
+	vm, err := host.OpenVM("/Users/alien/Documents/Virtual Machines.localized/INSPECT.vmwarevm/INSPECT.vmx", "")
 	if err != nil {
 		panic(err)
 	}

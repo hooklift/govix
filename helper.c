@@ -132,8 +132,7 @@ VixError get_file_info(VixHandle jobHandle,
 void find_items_callback(
     VixHandle jobHandle,
     VixEventType eventType,
-    VixHandle moreEventInfo,
-    void* goCallback) {
+    VixHandle moreEventInfo) {
 
     VixError err = VIX_OK;
     char* url = NULL;
@@ -154,8 +153,9 @@ void find_items_callback(
         printf("Error %s\n", Vix_GetErrorText(err, NULL));
     }
 
-    go_callback_char(goCallback, url);
-
+    // add url to the results for the jobHandle
+    add_url_callback(url, jobHandle);
+ 
     Vix_FreeBuffer(url);
 }
 
