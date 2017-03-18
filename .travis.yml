@@ -5,6 +5,7 @@ script: make build
 go:
   - 1.4
   - 1.5
+  - 1.8
   - tip
 
 before_install:
